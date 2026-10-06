@@ -59,8 +59,8 @@ ffmpeg -i in.gif -vf "scale=760:-2,format=yuv420p" -c:v libx264 -crf 26 -movflag
 
 ## 部署到 GitHub Pages
 
-- Repository：https://github.com/terrywu799/terry-productdesign
-- 網址：https://terrywu799.github.io/terry-productdesign/
+- Repository：https://github.com/terry-product-design/terry-product-design.github.io（放在 GitHub 組織 terry-product-design 底下）
+- 網址：https://terry-product-design.github.io/
 
 ### 日常更新
 
@@ -77,7 +77,7 @@ git push
 
 ### 第一次設定（只需一次）
 
-1. 在 GitHub 建立空的 public repository `terry-productdesign`（不要勾選 README）。
+1. Repository 放在 GitHub 組織 `terry-product-design` 底下，名稱必須是 `terry-product-design.github.io`，網址才會是根網域。
 2. Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。
 3. 第一次 push 時若要求登入，密碼欄位填 Personal Access Token（classic，勾選 `repo` 和 `workflow`），macOS 鑰匙圈會記住。
 

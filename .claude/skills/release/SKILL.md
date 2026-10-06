@@ -6,9 +6,9 @@ description: Publish the portfolio site — verify the build, commit the current
 # Release the portfolio site
 
 Terry runs `/release` after editing the site. The goal: get the current local changes live on
-https://terrywu799.github.io/terry-productdesign/ safely. Reply in Traditional Chinese.
+https://terry-product-design.github.io/ safely. Reply in Traditional Chinese.
 
-Repository: https://github.com/terrywu799/terry-productdesign (branch `main`).
+Repository: https://github.com/terry-product-design/terry-product-design.github.io (branch `main`).
 Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and deploys to GitHub Pages.
 
 ## Steps
@@ -19,7 +19,7 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and depl
    already up to date and stop.
 
 2. **Verify the build.**
-   Run `BASE_PATH=/terry-productdesign SITE_URL=https://terrywu799.github.io npm run build`.
+   Run `SITE_URL=https://terry-product-design.github.io npm run build`.
    If it fails, stop, explain the error in plain language, and offer to fix it. Never push a broken build.
 
 3. **Review what's going out.**
@@ -36,21 +36,21 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and depl
 
 5. **Push.**
    `git push origin main` (first release ever: `git push -u origin main`; if GitHub says the repository
-   doesn't exist, ask Terry to create it at https://github.com/new?name=terry-productdesign&visibility=public
-   — empty, no README). If authentication fails, explain that GitHub needs a Personal Access Token
+   doesn't exist, check that the repo still lives at
+   github.com/terry-product-design/terry-product-design.github.io and the remote URL matches). If authentication fails, explain that GitHub needs a Personal Access Token
    (classic, `repo` + `workflow` scopes) entered as the password once; macOS Keychain will remember it.
    Do not ask Terry to paste the token into the chat.
 
 6. **Report.**
    Tell Terry the push succeeded, that the site updates in about 1–2 minutes, and give:
-   - Live site: https://terrywu799.github.io/terry-productdesign/
-   - Deploy progress: https://github.com/terrywu799/terry-productdesign/actions
-   If a check of the Actions page (or `curl -s https://api.github.com/repos/terrywu799/terry-productdesign/actions/runs?per_page=1`)
+   - Live site: https://terry-product-design.github.io/
+   - Deploy progress: https://github.com/terry-product-design/terry-product-design.github.io/actions
+   If a check of the Actions page (or `curl -s https://api.github.com/repos/terry-product-design/terry-product-design.github.io/actions/runs?per_page=1`)
    shows the run failed, read the failure and offer to fix it.
 
 ## Notes
 
 - Always build before pushing. Never force-push, never rewrite history.
 - Keep commits as one logical change per release unless Terry asks otherwise.
-- The site is served under `/terry-productdesign/`; all internal links use `import.meta.env.BASE_URL`,
-  so don't hard-code root-relative paths in new pages.
+- The site is served at the domain root. Internal links still use `import.meta.env.BASE_URL`,
+  so keep using it in new pages (it keeps working if the site ever moves under a sub-path).
