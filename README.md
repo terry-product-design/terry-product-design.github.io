@@ -59,20 +59,27 @@ ffmpeg -i in.gif -vf "scale=760:-2,format=yuv420p" -c:v libx264 -crf 26 -movflag
 
 ## 部署到 GitHub Pages
 
-1. 在 GitHub 建一個 repository。
-   - 叫 `你的帳號.github.io` → 網址是 `https://你的帳號.github.io/`
-   - 叫其他名字（例如 `portfolio`）→ 網址是 `https://你的帳號.github.io/portfolio/`
-2. 把這個資料夾推上去（`main` 分支）：
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial portfolio"
-   git branch -M main
-   git remote add origin https://github.com/你的帳號/repo名稱.git
-   git push -u origin main
-   ```
-3. 到 repository 的 **Settings → Pages → Build and deployment → Source**，選 **GitHub Actions**。
-4. 之後每次 push 到 `main`，`.github/workflows/deploy.yml` 會自動建置並部署（約 1–2 分鐘）。網址路徑會自動判斷，不用手動設定。
+- Repository：https://github.com/terrywu799/terry-productdesign
+- 網址：https://terrywu799.github.io/terry-productdesign/
+
+### 日常更新
+
+在 Claude Code 輸入 `/release`：會先建置確認沒有錯誤、列出改了什麼、commit 並推送到 GitHub。
+推送到 `main` 後，`.github/workflows/deploy.yml` 會自動建置並部署，約 1–2 分鐘生效。
+
+手動的話：
+
+```bash
+git add -A
+git commit -m "說明這次改了什麼"
+git push
+```
+
+### 第一次設定（只需一次）
+
+1. 在 GitHub 建立空的 public repository `terry-productdesign`（不要勾選 README）。
+2. Settings → Pages → Build and deployment → Source 選 **GitHub Actions**。
+3. 第一次 push 時若要求登入，密碼欄位填 Personal Access Token（classic，勾選 `repo` 和 `workflow`），macOS 鑰匙圈會記住。
 
 ### 自訂網域（選用）
 

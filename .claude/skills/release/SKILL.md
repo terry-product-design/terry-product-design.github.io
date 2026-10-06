@@ -14,8 +14,9 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and depl
 ## Steps
 
 1. **Check there is something to release.**
-   Run `git status --short`. If nothing changed and nothing is unpushed (`git log origin/main..main`),
-   say the live site is already up to date and stop.
+   Run `git status --short`. If nothing changed and nothing is unpushed (`git log origin/main..main`;
+   if `origin/main` doesn't exist yet this is the first release — continue), say the live site is
+   already up to date and stop.
 
 2. **Verify the build.**
    Run `BASE_PATH=/terry-productdesign SITE_URL=https://terrywu799.github.io npm run build`.
@@ -34,7 +35,9 @@ Pushing to `main` triggers `.github/workflows/deploy.yml`, which builds and depl
    `Update experience: IDEKU role ended Sep 2026`. Follow the commit attribution rules of the session.
 
 5. **Push.**
-   `git push origin main`. If authentication fails, explain that GitHub needs a Personal Access Token
+   `git push origin main` (first release ever: `git push -u origin main`; if GitHub says the repository
+   doesn't exist, ask Terry to create it at https://github.com/new?name=terry-productdesign&visibility=public
+   — empty, no README). If authentication fails, explain that GitHub needs a Personal Access Token
    (classic, `repo` + `workflow` scopes) entered as the password once; macOS Keychain will remember it.
    Do not ask Terry to paste the token into the chat.
 
