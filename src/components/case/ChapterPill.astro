@@ -1,0 +1,156 @@
+---
+interface Props {
+  chapters: { id: string; label: string }[];
+}
+const { chapters } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<nav class="pill" aria-label="Chapters" data-pill>
+  <ol class="pill__list" id="pill-list" data-pill-list>
+    {
+      chapters.map((c, i) => (
+        <li>
+          <a href={`#${c.id}`} class="pill__link" data-pill-link={c.id} tabindex="-1">
+            <span class="pill__link-num">{pad(i + 1)}</span>
+            <span>{c.label}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+  <button class="pill__btn" type="button" aria-expanded="false" aria-controls="pill-list" data-pill-toggle>
+    <svg class="pill__ring" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="10"></circle>
+      <circle cx="12" cy="12" r="10" pathLength="1" data-pill-ring></circle>
+    </svg>
+    <span class="pill__num" data-pill-num>01</span>
+    <span class="pill__label" data-pill-label>{chapters[0]?.label}</span>
+    <span class="pill__total">/ {pad(chapters.length)}</span>
+    <svg class="pill__chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 7.5 6 4.5 9 7.5"></path></svg>
+  </button>
+</nav>
+
+<style>
+  .pill {
+    position: fixed;
+    left: 50%;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 75;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transform: translate(-50%, 140%);
+    transition: transform 0.7s var(--ease-out);
+    pointer-events: none;
+  }
+  :global(.pill-on) .pill {
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+  }
+  /* Step out of the way while reading (scrolling down), like the nav */
+  :global(.pill-on.nav-hidden:not(.pill-open)) .pill {
+    transform: translate(-50%, 140%);
+    pointer-events: none;
+  }
+  .pill__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 18px 0 12px;
+    border-radius: 999px;
+    background: rgba(19, 17, 27, 0.78);
+    border: 1px solid var(--line-strong);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .pill__ring {
+    width: 24px;
+    height: 24px;
+    transform: rotate(-90deg);
+    fill: none;
+    stroke-width: 2;
+  }
+  .pill__ring circle:first-child {
+    stroke: var(--line-strong);
+  }
+  .pill__ring circle:last-child {
+    stroke: var(--accent);
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    stroke-linecap: round;
+  }
+  .pill__num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .pill__label {
+    min-width: 7ch;
+  }
+  .pill__total {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+  }
+  .pill__chev {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: var(--fg-2);
+    stroke-width: 1.4;
+    transition: transform 0.4s var(--ease-out);
+  }
+  :global(.pill-open) .pill__chev {
+    transform: rotate(180deg);
+  }
+  .pill__list {
+    display: grid;
+    min-width: 260px;
+    padding: 8px;
+    border-radius: 20px;
+    background: rgba(19, 17, 27, 0.92);
+    border: 1px solid var(--line-strong);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    transform-origin: 50% 100%;
+    transform: translateY(12px) scale(0.96);
+    opacity: 0;
+    visibility: hidden;
+    transition: transform 0.5s var(--ease-out), opacity 0.3s ease, visibility 0.3s;
+  }
+  :global(.pill-open) .pill__list {
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+  .pill__link {
+    display: flex;
+    gap: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--fg-2);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  .pill__link:hover,
+  .pill__link.is-active {
+    background: rgba(241, 241, 241, 0.06);
+    color: var(--fg);
+  }
+  .pill__link-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+    padding-top: 0.25em;
+  }
+  .pill__link.is-active .pill__link-num {
+    color: var(--accent);
+  }
+</style>

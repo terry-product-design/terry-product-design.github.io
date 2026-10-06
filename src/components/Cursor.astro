@@ -1,0 +1,96 @@
+<div class="cursor" aria-hidden="true" data-cursor-root>
+  <div class="cursor__ring" data-cursor-ring>
+    <span class="cursor__label" data-cursor-label></span>
+  </div>
+  <div class="cursor__dot" data-cursor-dot></div>
+</div>
+
+<style>
+  .cursor {
+    display: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    :global(.has-cursor) .cursor {
+      display: block;
+    }
+    :global(.has-cursor),
+    :global(.has-cursor) * {
+      cursor: none !important;
+    }
+    :global(.has-cursor) input,
+    :global(.has-cursor) textarea {
+      cursor: text !important;
+    }
+  }
+  .cursor__dot,
+  .cursor__ring {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    pointer-events: none;
+    border-radius: 50%;
+    will-change: transform;
+  }
+  .cursor__dot {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    background: var(--fg);
+    transition: opacity 0.3s ease, width 0.3s ease, height 0.3s ease;
+  }
+  .cursor__ring {
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    display: grid;
+    place-items: center;
+  }
+  .cursor__ring::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(241, 241, 241, 0.35);
+    transition:
+      transform 0.5s var(--ease-out),
+      background-color 0.4s ease,
+      border-color 0.4s ease,
+      opacity 0.4s ease;
+  }
+  .cursor__label {
+    position: relative;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--cursor-fg, var(--bg));
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 0.3s ease, transform 0.5s var(--ease-out);
+  }
+
+  :global(.cursor-link) .cursor__ring::before {
+    transform: scale(1.5);
+    border-color: rgba(155, 140, 255, 0.7);
+  }
+  :global(.cursor-label) .cursor__ring::before {
+    transform: scale(2.6);
+    background: var(--cursor-bg, var(--fg));
+    border-color: var(--cursor-bg, var(--fg));
+  }
+  :global(.cursor-label) .cursor__label {
+    opacity: 1;
+    transform: none;
+  }
+  :global(.cursor-label) .cursor__dot,
+  :global(.cursor-hide) .cursor__dot {
+    opacity: 0;
+  }
+  :global(.cursor-hide) .cursor__ring::before {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  :global(.cursor-down) .cursor__ring::before {
+    transform: scale(0.8);
+  }
+</style>

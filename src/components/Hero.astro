@@ -1,0 +1,263 @@
+---
+import { hero, site } from '../data/content';
+
+// Render the headline with the two animated words wrapped.
+const renderLine = (line: string) =>
+  line
+    .replace('complex', '<span class="hero__complex" data-complex>complex</span>')
+    .replace('simple.', '<em class="serif hero__simple">simple.<span class="hero__underline" data-underline></span></em>');
+---
+
+<section class="hero" id="top" data-hero aria-label="Introduction">
+  <div class="hero__sticky">
+    <canvas class="hero__canvas" data-hero-canvas data-labels={JSON.stringify(hero.systemLabels)} aria-hidden="true"
+    ></canvas>
+    <div class="hero__veil" aria-hidden="true"></div>
+
+    <div class="hero__content container">
+      <p class="label hero__eyebrow" data-hero-fade>
+        <span>{site.name}</span><span class="label__rule"></span><span>{site.role}</span>
+      </p>
+      <h1 class="hero__title" data-hero-title>
+        <span class="sr-only">{hero.lines.join(' ')}</span>
+        {
+          hero.lines.map((line) => (
+            <span class="line-mask" aria-hidden="true">
+              <span class="hero__line" set:html={renderLine(line)} />
+            </span>
+          ))
+        }
+      </h1>
+    </div>
+
+    <div class="hero__bottom container">
+      <p class="hero__intro" data-hero-fade>{hero.intro}</p>
+
+      <div class="hero__meter" data-hero-fade aria-hidden="true">
+        <div class="hero__meter-row">
+          <span>Complexity</span><span data-meter-complex>100%</span>
+        </div>
+        <div class="hero__meter-bar"><span data-meter-bar></span></div>
+        <div class="hero__meter-row">
+          <span>Clarity</span><span data-meter-clarity>0%</span>
+        </div>
+      </div>
+
+      <div class="hero__hint" data-hero-fade>
+        <span class="hero__hint-track" aria-hidden="true"><span></span></span>
+        <span class="hero__hint-text"><span class="hide-touch">Hover &amp; scroll</span><span class="show-touch">Scroll</span> to simplify</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    height: 210vh;
+    height: 210svh;
+  }
+  .hero__sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .hero__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .hero__veil {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(60% 55% at 28% 52%, rgba(8, 5, 15, 0.72), rgba(8, 5, 15, 0) 70%),
+      linear-gradient(to bottom, rgba(8, 5, 15, 0.6), rgba(8, 5, 15, 0) 18%, rgba(8, 5, 15, 0) 75%, rgba(8, 5, 15, 0.9));
+  }
+
+  .hero__content {
+    position: relative;
+    margin-top: -4vh;
+  }
+  .hero__eyebrow {
+    margin-bottom: clamp(20px, 2.4vw, 36px);
+  }
+  .hero__title {
+    font-size: clamp(46px, 8.6vw, 156px);
+    font-weight: 400;
+    letter-spacing: -0.055em;
+    line-height: 0.96;
+  }
+  .hero__line {
+    white-space: nowrap;
+  }
+  .hero__title :global(.hero__complex) {
+    display: inline-block;
+    position: relative;
+  }
+  .hero__title :global(.hero__complex .ch) {
+    display: inline-block;
+    will-change: transform;
+  }
+  .hero__title :global(.hero__simple) {
+    position: relative;
+    display: inline-block;
+    padding-right: 0.08em;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    background: linear-gradient(100deg, #c9bfff 0%, var(--accent) 45%, #6f5bff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero__title :global(.hero__underline) {
+    position: absolute;
+    left: 0.04em;
+    right: 0.32em;
+    bottom: 0.06em;
+    height: max(2px, 0.035em);
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), rgba(155, 140, 255, 0.2));
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+
+  .hero__bottom {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-inline: auto;
+    padding-bottom: clamp(20px, 3vw, 40px);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    align-items: end;
+  }
+  .hero__intro {
+    max-width: 40ch;
+    font-size: clamp(15px, 1.1vw, 18px);
+    color: var(--fg-2);
+    line-height: 1.5;
+  }
+
+  .hero__meter {
+    display: none;
+    width: 220px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .hero__meter-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  .hero__meter-row:last-child span:last-child {
+    color: var(--accent);
+  }
+  .hero__meter-bar {
+    position: relative;
+    height: 1px;
+    margin: 10px 0;
+    background: var(--line-strong);
+  }
+  .hero__meter-bar span {
+    position: absolute;
+    inset: -0.5px 0;
+    background: var(--accent);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    box-shadow: 0 0 12px var(--accent);
+  }
+
+  .hero__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .hero__hint-track {
+    position: relative;
+    width: 1px;
+    height: 40px;
+    background: var(--line-strong);
+    overflow: hidden;
+  }
+  .hero__hint-track span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 40%;
+    background: var(--fg);
+    animation: hint 2.2s var(--ease-in-out) infinite;
+  }
+  @keyframes hint {
+    0% {
+      transform: translateY(-100%);
+    }
+    100% {
+      transform: translateY(260%);
+    }
+  }
+  .show-touch {
+    display: none;
+  }
+  @media (hover: none) {
+    .hide-touch {
+      display: none;
+    }
+    .show-touch {
+      display: inline;
+    }
+  }
+
+  @media (min-width: 800px) {
+    .hero__bottom {
+      grid-template-columns: 1fr auto auto;
+      gap: clamp(32px, 5vw, 96px);
+    }
+    .hero__meter {
+      display: block;
+    }
+  }
+
+  @media (max-width: 799px) {
+    .hero {
+      height: 180vh;
+      height: 180svh;
+    }
+    .hero__content {
+      margin-top: -12vh;
+    }
+    .hero__line {
+      white-space: normal;
+    }
+    .hero__hint {
+      display: none;
+    }
+    .hero__meter {
+      display: block;
+      order: -1;
+      width: 100%;
+      max-width: 260px;
+    }
+    .hero__intro {
+      max-width: 34ch;
+      font-size: 15px;
+    }
+  }
+</style>

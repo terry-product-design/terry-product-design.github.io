@@ -1,0 +1,509 @@
+---
+import { getImage, Image } from 'astro:assets';
+import Case from '../../layouts/Case.astro';
+import CaseHero from '../../components/case/CaseHero.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Figure from '../../components/case/Figure.astro';
+import NextProject from '../../components/case/NextProject.astro';
+import { works } from '../../data/content';
+
+import cover from '../../assets/case/myreward/cover.png';
+import iconDining from '../../assets/case/myreward/icon-dining.png';
+import iconTravel from '../../assets/case/myreward/icon-travel.png';
+import iconMovie from '../../assets/case/myreward/icon-movie.png';
+import iconMassage from '../../assets/case/myreward/icon-massage.png';
+import module1 from '../../assets/case/myreward/module-1.png';
+import module2 from '../../assets/case/myreward/module-2.png';
+import module3 from '../../assets/case/myreward/module-3.png';
+import module4 from '../../assets/case/myreward/module-4.png';
+import find1 from '../../assets/case/myreward/find-1.png';
+import find2 from '../../assets/case/myreward/find-2.png';
+import find3 from '../../assets/case/myreward/find-3.png';
+import book1 from '../../assets/case/myreward/book-1.png';
+import book2 from '../../assets/case/myreward/book-2.png';
+import book3 from '../../assets/case/myreward/book-3.png';
+import flowMap from '../../assets/case/myreward/flow-map.png';
+import heatmap from '../../assets/case/myreward/heatmap.png';
+
+const index = works.findIndex((w) => w.slug === 'mr');
+const next = works[(index + 1) % works.length];
+
+const chapters = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'opportunity', label: 'Opportunity' },
+  { id: 'system', label: 'System' },
+  { id: 'focus', label: 'Focus case' },
+  { id: 'learning', label: 'Learning' },
+  { id: 'impact', label: 'Impact' },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+const num = (id: string) => pad(chapters.findIndex((c) => c.id === id) + 1);
+const share = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
+
+const services = [
+  { icon: iconDining, name: 'Restaurant reservations' },
+  { icon: iconTravel, name: 'Travel experiences' },
+  { icon: iconMovie, name: 'Movie ticketing' },
+  { icon: iconMassage, name: 'Aromatherapy massage' },
+];
+const phoneSizes = '(min-width: 900px) 220px, 44vw';
+---
+
+<Case
+  title="MyReward — Making Points a Daily Habit · Terry Wu"
+  description="Case study: turning Cathay's MyRewards points from a passive balance into an everyday lifestyle currency, with modular services and a restaurant booking flow."
+  image={share.src}
+  chapters={chapters}
+>
+  <CaseHero
+    client="Cathay MyReward · Mobile app"
+    title="Making Points a Daily Habit — From Finance to Lifestyle"
+    intro="Reward points sat in a balance nobody checked. I led the design delivery that turned them into a lifestyle currency — modular services people could use every day, starting with restaurant booking."
+    index={index + 1}
+    total={works.length}
+    meta={[
+      { k: 'Role', v: 'Design lead for delivery — UI/UX, planning, coordination' },
+      { k: 'Scope', v: 'UI/UX design · Quantitative research' },
+      { k: 'Team', v: 'With 2 designers and the PM team' },
+      { k: 'Platform', v: 'Mobile app' },
+    ]}
+    cover={cover}
+    coverAlt="MyReward app screens on three phones: points balance, lifestyle services and restaurant listings"
+    stats={[
+      { value: 20, prefix: '+', suffix: '%', label: 'Monthly point usage' },
+      { value: 2, suffix: 'nd', label: 'Most-clicked module on the app home' },
+      { value: 10, prefix: '~', suffix: '%', label: 'Active users tried a lifestyle service in year one' },
+      { value: 15, prefix: '+', suffix: '%', label: 'Engagement after switching to “Nearby”' },
+    ]}
+  />
+
+  <!-- 01 Overview -->
+  <Chapter id="overview" num={num('overview')} label="Overview">
+    <h2 class="c-h2" data-split-lines>From a balance you check to a currency you <span class="serif">use</span>.</h2>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">The context</p>
+        <div class="prose">
+          <p>
+            This redesign set out to turn <strong>MyRewards points</strong> from a passive balance into an active lifestyle currency that encourages daily use.
+          </p>
+          <p>
+            By expanding where points could be used, we repositioned the Cathay Rewards section as a <strong>lifestyle gateway rather than a financial add-on</strong> — laying the groundwork for future service integrations.
+          </p>
+        </div>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">My role</p>
+        <div class="prose">
+          <p>
+            I owned design delivery, working with two designers to execute and refine the experience. I also handled <strong>planning and coordination</strong>, so quality and timelines met the product team’s expectations.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="shift" data-reveal="fade-up" aria-label="Shift: from a financial rebate to an everyday lifestyle currency">
+      <span class="shift__from">A financial rebate</span>
+      <span class="shift__arrow" aria-hidden="true"></span>
+      <span class="shift__to">An everyday lifestyle currency</span>
+    </div>
+  </Chapter>
+
+  <!-- 02 Opportunity -->
+  <Chapter id="opportunity" num={num('opportunity')} label="Opportunity">
+    <h2 class="c-h2" data-split-lines>Where would people <span class="serif">spend</span> points?</h2>
+    <p class="lead" data-reveal="fade-up">
+      With the PM team, we read <strong>credit card transaction data and in-app usage</strong> to find the lifestyle scenarios with the most potential.
+    </p>
+    <ul class="services">
+      {
+        services.map((s, i) => (
+          <li data-reveal="fade-up" style={`--i:${i}`}>
+            <Image src={s.icon} alt="" width={120} height={120} widths={[120, 240]} sizes="120px" class="services__icon" loading="lazy" />
+            <span class="services__num">{pad(i + 1)}</span>
+            <span class="services__name">{s.name}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="prose" data-reveal="fade-up">
+      I benchmarked third-party services to <strong>build MVP prototypes quickly</strong>, and we used agile development to speed up iteration.
+    </p>
+  </Chapter>
+
+  <!-- 03 System -->
+  <Chapter id="system" num={num('system')} label="System">
+    <h2 class="c-h2" data-split-lines>Modular, so the next service is <span class="serif">easy</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      To speed up development and keep the experience unified, I led the component system and built a design framework that scales.
+    </p>
+    <div class="cards cards--2">
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">01</span>
+        <h3 class="c-h3">Integrated service cards</h3>
+        <p>Flexible entry modules that host different services while keeping visual and interaction logic consistent.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">02</span>
+        <h3 class="c-h3">Universal booking flow</h3>
+        <p>A flexible flow that adapts to different APIs and service providers, so new services can be added fast.</p>
+      </div>
+    </div>
+    <div class="phones phones--4 bleed">
+      <Figure src={module1} alt="Restaurant booking landing with service cards" bare sizes={phoneSizes} widths={[280, 560]} />
+      <Figure src={module2} alt="Movie ticketing using the same booking module" bare sizes={phoneSizes} widths={[280, 560]} />
+      <Figure src={module3} alt="Travel experiences using the same service cards" bare sizes={phoneSizes} widths={[280, 560]} />
+      <Figure src={module4} alt="Restaurant listing by region" bare sizes={phoneSizes} widths={[280, 560]} />
+    </div>
+  </Chapter>
+
+  <!-- 04 Focus case -->
+  <Chapter id="focus" num={num('focus')} label="Focus case">
+    <h2 class="c-h2" data-split-lines>Focus case: <span class="serif">restaurant</span> reservations</h2>
+    <p class="lead" data-reveal="fade-up">
+      Data and surveys made restaurant booking the most anticipated use case. Plenty of apps already offered it — but people struggled with <strong>fragmented information and switching between platforms</strong>.
+    </p>
+
+    <div class="flow">
+      <div class="flow__text" data-reveal="fade-up">
+        <p class="kicker">Find a table</p>
+        <ol class="nlist">
+          <li><span>01</span><span>Aggregate restaurant data from multiple platforms into <strong>a single entry point</strong>.</span></li>
+          <li><span>02</span><span>Combine <strong>location-based filtering</strong> with search and category browsing.</span></li>
+        </ol>
+      </div>
+      <div class="phones phones--3">
+        <Figure src={find1} alt="Restaurant home with popular and nearby restaurants" bare sizes={phoneSizes} widths={[280, 560, 750]} />
+        <Figure src={find2} alt="Filtering restaurants by area and cuisine" bare sizes={phoneSizes} widths={[280, 560, 750]} />
+        <Figure src={find3} alt="Searching for a restaurant by name" bare sizes={phoneSizes} widths={[280, 560, 750]} />
+      </div>
+    </div>
+    <div class="flow">
+      <div class="flow__text" data-reveal="fade-up">
+        <p class="kicker">Book it</p>
+        <ol class="nlist">
+          <li><span>01</span><span>Show each restaurant’s <strong>current open status</strong>, including waitlist availability.</span></li>
+          <li><span>02</span><span>Surface key details and support both <strong>reservation and waitlist</strong> flows.</span></li>
+        </ol>
+      </div>
+      <div class="phones phones--3">
+        <Figure src={book1} alt="Restaurant list with open status and point offers" bare sizes={phoneSizes} widths={[280, 560, 750]} />
+        <Figure src={book2} alt="Restaurant detail with party size and reservation button" bare sizes={phoneSizes} widths={[280, 560, 750]} />
+        <Figure src={book3} alt="Choosing a date and time slot to book" bare sizes={phoneSizes} widths={[280, 560, 750]} />
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Every path, end to end</h3>
+      <p class="prose" data-reveal="fade-up">
+        I made sure the full journey — from tapping the service on the homepage to finishing the task — <strong>held up across different scenarios and conditions</strong>.
+      </p>
+    </div>
+    <Figure src={flowMap} alt="Flow map of the restaurant booking journey across every screen and branch" caption="The full booking flow — tap to enlarge" zoom class="bleed" bg="#2a2a2e" sizes="(min-width: 1680px) 1584px, 94vw" widths={[800, 1400, 2400]} />
+  </Chapter>
+
+  <!-- 05 Learning -->
+  <Chapter id="learning" num={num('learning')} label="Learning">
+    <h2 class="c-h2" data-split-lines>Learning from <span class="serif">real</span> usage</h2>
+    <div class="learn">
+      <div class="stack">
+        <div class="ab" data-inview>
+          <p class="kicker">Default tab on the restaurant home</p>
+          <div class="ab__row">
+            <span class="ab__label">Top Picks</span>
+            <span class="ab__track"><span class="ab__fill ab__fill--a"></span></span>
+          </div>
+          <div class="ab__row">
+            <span class="ab__label">Nearby</span>
+            <span class="ab__track"><span class="ab__fill ab__fill--b"></span></span>
+          </div>
+          <p class="ab__note">Hotjar showed “Nearby Restaurants” out-clicking “Top Picks”. Bars are illustrative.</p>
+        </div>
+        <div class="headline" data-reveal="fade-up">
+          <span class="headline__num">+<span data-count="15">15</span><small>%</small></span>
+          <p>After switching the default to <strong>“Nearby”</strong>, engagement rose by more than 15%.</p>
+        </div>
+        <div class="prose" data-reveal="fade-up">
+          <p>
+            Rapid adoption of the restaurant module led the team to <strong>prioritize waitlist support</strong> and keep iterating.
+          </p>
+        </div>
+      </div>
+      <figure class="strip learn__media" data-strip>
+        <div class="strip__frame" data-strip-frame>
+          <Image src={heatmap} alt="Hotjar heatmap of the restaurant home, with clicks concentrated on nearby restaurants" widths={[300, 560]} sizes="(min-width: 900px) 300px, 70vw" loading="lazy" />
+        </div>
+        <figcaption class="strip__caption"><span>Hotjar heatmap</span><span>Restaurant home</span></figcaption>
+      </figure>
+    </div>
+  </Chapter>
+
+  <!-- 06 Impact -->
+  <Chapter id="impact" num={num('impact')} label="Impact">
+    <h2 class="c-h2" data-split-lines>Impact that <span class="serif">matters</span></h2>
+    <ul class="results">
+      <li data-reveal="fade-up">
+        <span class="results__big">+<span data-count="20">20</span><small>%</small></span>
+        <span>Monthly point usage — redemptions and cashback</span>
+      </li>
+      <li data-reveal="fade-up">
+        <span class="results__big"><span data-count="2">2</span><small>nd</small></span>
+        <span>The lifestyle section became the second most-clicked module on the app home</span>
+      </li>
+      <li data-reveal="fade-up">
+        <span class="results__big">~<span data-count="10">10</span><small>%</small></span>
+        <span>Of active users tried at least one lifestyle service within the first year</span>
+      </li>
+    </ul>
+
+    <blockquote class="testimonial" data-reveal="fade-up">
+      <p class="pull">“You’ve been a key force in <em>bridging design and execution.</em>”</p>
+      <p class="pull-cite">Feedback from the PM team</p>
+      <p class="prose">“You’re fast to respond and proactive in coordinating.”</p>
+    </blockquote>
+    <p class="lead" data-reveal="fade-up">
+      With limited resources early on, we focused on strategic prioritization and agile validation — making lifestyle services part of daily behavior, and extending the value of points <strong>beyond financial rebates into real-life experiences</strong>.
+    </p>
+  </Chapter>
+
+  <NextProject client={next.client} title={next.title} image={next.image} href={next.href} accent={next.accent} />
+</Case>
+
+<style>
+  .services {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  .services li {
+    display: grid;
+    justify-items: start;
+    gap: 14px;
+    padding: clamp(20px, 2.2vw, 30px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+    transition: border-color 0.4s ease, transform 0.6s var(--ease-out);
+  }
+  .services li:hover {
+    border-color: rgba(155, 140, 255, 0.4);
+    transform: translateY(-4px);
+  }
+  .services :global(.services__icon) {
+    width: clamp(72px, 7vw, 104px);
+    height: auto;
+    transition: transform 0.7s var(--ease-out);
+  }
+  .services li:hover :global(.services__icon) {
+    transform: rotate(-6deg) scale(1.06);
+  }
+  .services__num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .services__name {
+    font-size: clamp(19px, 1.6vw, 24px);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+  @media (min-width: 900px) {
+    .services {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .phones {
+    display: grid;
+    gap: clamp(10px, 2vw, 28px);
+    align-items: start;
+    justify-content: center;
+  }
+  .phones--4 {
+    grid-template-columns: repeat(2, minmax(0, 220px));
+  }
+  .phones--3 {
+    grid-template-columns: repeat(3, minmax(0, 200px));
+  }
+  .phones :global(.fig:nth-child(even)) {
+    margin-top: clamp(16px, 3vw, 48px);
+  }
+  @media (min-width: 900px) {
+    .phones--4 {
+      grid-template-columns: repeat(4, minmax(0, 220px));
+    }
+  }
+
+  .flow {
+    display: grid;
+    gap: clamp(24px, 3vw, 48px);
+    align-items: center;
+  }
+  @media (min-width: 1024px) {
+    .flow {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+  }
+
+  .learn {
+    display: grid;
+    gap: clamp(28px, 4vw, 64px);
+    align-items: start;
+  }
+  .learn__media {
+    width: min(100%, 300px);
+    justify-self: center;
+  }
+  .strip {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+  }
+  .strip__frame {
+    height: min(68svh, 600px);
+    border-radius: 24px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--line-strong), 0 30px 80px rgba(0, 0, 0, 0.45);
+  }
+  .strip__frame :global(img) {
+    width: 100%;
+    height: auto;
+    will-change: transform;
+  }
+  .strip__caption {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  @media (min-width: 900px) {
+    .learn {
+      grid-template-columns: minmax(0, 1fr) 300px;
+    }
+    .learn__media {
+      position: sticky;
+      top: calc(var(--nav-h) + 32px);
+    }
+  }
+
+  .ab {
+    display: grid;
+    gap: 14px;
+    padding: clamp(22px, 3vw, 40px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .ab__row {
+    display: grid;
+    grid-template-columns: 90px minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+  }
+  .ab__label {
+    font-size: 14px;
+    color: var(--fg-2);
+  }
+  .ab__track {
+    height: 22px;
+    border-radius: 6px;
+    background: rgba(241, 241, 241, 0.05);
+    overflow: hidden;
+  }
+  .ab__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 1.3s var(--ease-out);
+  }
+  .ab__fill--a {
+    width: 52%;
+    background: rgba(241, 241, 241, 0.32);
+  }
+  .ab__fill--b {
+    width: 86%;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    transition-delay: 0.2s;
+  }
+  .ab.is-on .ab__fill {
+    transform: none;
+  }
+  .ab__note {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    line-height: 1.6;
+    color: var(--fg-3);
+  }
+
+  .headline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px 28px;
+    padding-top: 12px;
+  }
+  .headline__num {
+    display: flex;
+    align-items: baseline;
+    font-size: clamp(64px, 8vw, 132px);
+    font-weight: 300;
+    letter-spacing: -0.06em;
+    line-height: 0.85;
+    color: var(--fg);
+  }
+  .headline__num small {
+    font-size: 0.45em;
+    color: var(--accent);
+  }
+  .headline p {
+    max-width: 30ch;
+    color: var(--fg-2);
+  }
+  .headline strong {
+    font-weight: 400;
+    color: var(--fg);
+  }
+
+  .results {
+    display: grid;
+    gap: 14px;
+  }
+  .results li {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding: clamp(22px, 2.4vw, 36px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(100% 100% at 0% 0%, rgba(111, 91, 255, 0.12), transparent 60%),
+      linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+    color: var(--fg-2);
+    font-size: 15px;
+  }
+  .results__big {
+    display: flex;
+    align-items: baseline;
+    font-size: clamp(44px, 4.4vw, 72px);
+    font-weight: 300;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .results__big small {
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+  @media (min-width: 900px) {
+    .results {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

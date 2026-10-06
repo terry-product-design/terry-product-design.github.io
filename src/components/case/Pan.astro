@@ -1,0 +1,105 @@
+---
+import { getImage } from 'astro:assets';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string;
+}
+const { src, alt, caption } = Astro.props;
+
+// Rendered at a fixed height and panned horizontally; 2x for crisp text on retina.
+const heights = [420, 640, 960, 1280];
+const variants = await Promise.all(
+  heights.map((h) => getImage({ src, height: h, width: Math.round((src.width * h) / src.height), format: 'webp', quality: 80 })),
+);
+const srcset = variants.map((v, i) => `${v.src} ${Math.round((src.width * heights[i]) / src.height)}w`).join(', ');
+const ratio = src.width / src.height;
+---
+
+<figure class="pan" data-pan style={`--ratio:${ratio}`}>
+  <div class="pan__viewport" data-pan-viewport data-cursor="Drag" tabindex="0" aria-label={`${alt} — scroll horizontally to explore`}>
+    <img
+      class="pan__img"
+      src={variants[1].src}
+      srcset={srcset}
+      sizes={`(min-width: 1024px) ${Math.round(620 * ratio)}px, ${Math.round(320 * ratio)}px`}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      draggable="false"
+    />
+  </div>
+  <div class="pan__bar">
+    <span class="pan__hint">← Drag to explore →</span>
+    <span class="pan__track" aria-hidden="true"><span data-pan-progress></span></span>
+  </div>
+  {caption && <figcaption class="pan__caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  .pan {
+    --pan-h: clamp(320px, 42vw, 620px);
+    display: grid;
+    gap: 14px;
+  }
+  .pan__viewport {
+    height: var(--pan-h);
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-radius: var(--radius);
+    background: #fff;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    cursor: grab;
+    box-shadow: inset 0 0 0 1px rgba(241, 241, 241, 0.08);
+  }
+  .pan__viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .pan__viewport.is-dragging {
+    cursor: grabbing;
+  }
+  .pan__img {
+    display: block;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    aspect-ratio: var(--ratio);
+    user-select: none;
+  }
+  .pan__bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .pan__hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    white-space: nowrap;
+  }
+  .pan__track {
+    position: relative;
+    flex: 1;
+    height: 1px;
+    background: var(--line-strong);
+  }
+  .pan__track span {
+    position: absolute;
+    inset: -0.5px auto -0.5px 0;
+    width: 100%;
+    background: var(--accent);
+    transform-origin: 0 50%;
+    transform: scaleX(0.1);
+  }
+  .pan__caption {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+</style>

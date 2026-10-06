@@ -1,0 +1,67 @@
+<div class="lightbox" data-lightbox role="dialog" aria-modal="true" aria-label="Image viewer" aria-hidden="true">
+  <div class="lightbox__stage" data-lightbox-stage>
+    <img class="lightbox__img" data-lightbox-img alt="" decoding="async" />
+  </div>
+  <p class="lightbox__caption" data-lightbox-caption></p>
+  <button class="lightbox__close btn btn--ghost" type="button" data-lightbox-close>
+    <span class="roll"><span class="roll__inner" data-text="Close">Close</span></span>
+    <span aria-hidden="true">✕</span>
+  </button>
+</div>
+
+<style>
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    padding: clamp(16px, 4vw, 64px);
+    padding-top: calc(var(--nav-h) + 8px);
+    background: rgba(8, 5, 15, 0.94);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.45s ease, visibility 0.45s;
+  }
+  :global(.lightbox-open) .lightbox {
+    opacity: 1;
+    visibility: visible;
+  }
+  .lightbox__stage {
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .lightbox__img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 12px;
+    transform: scale(0.96);
+    transition: transform 0.6s var(--ease-out);
+  }
+  :global(.lightbox-open) .lightbox__img {
+    transform: none;
+  }
+  .lightbox__caption {
+    padding-top: 16px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    text-align: center;
+  }
+  .lightbox__close {
+    position: absolute;
+    top: 16px;
+    right: var(--gutter);
+    height: 40px;
+    background: rgba(19, 17, 27, 0.7);
+  }
+</style>

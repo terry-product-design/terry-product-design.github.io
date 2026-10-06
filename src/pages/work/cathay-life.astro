@@ -1,0 +1,840 @@
+---
+import { getImage } from 'astro:assets';
+import Case from '../../layouts/Case.astro';
+import CaseHero from '../../components/case/CaseHero.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Figure from '../../components/case/Figure.astro';
+import DeviceVideo from '../../components/case/DeviceVideo.astro';
+import Feature from '../../components/case/Feature.astro';
+import NextProject from '../../components/case/NextProject.astro';
+import { works } from '../../data/content';
+
+import cover from '../../assets/case/cathay-life/cover.jpg';
+import covidStreet from '../../assets/case/cathay-life/covid-street.jpg';
+import turningPoint from '../../assets/case/cathay-life/turning-point.png';
+import userSegments from '../../assets/case/cathay-life/user-segments.png';
+import originalApp from '../../assets/case/cathay-life/original-app.png';
+import interview from '../../assets/case/cathay-life/interview.png';
+import cardSorting from '../../assets/case/cathay-life/card-sorting.png';
+import impactEffort from '../../assets/case/cathay-life/impact-effort.png';
+import journeyMap from '../../assets/case/cathay-life/journey-map.png';
+import ia1 from '../../assets/case/cathay-life/ia-1.png';
+import ia2 from '../../assets/case/cathay-life/ia-2.png';
+import ia3 from '../../assets/case/cathay-life/ia-3.png';
+import wireframe from '../../assets/case/cathay-life/wireframe.png';
+import businessFlows from '../../assets/case/cathay-life/business-flows.png';
+import claimStates from '../../assets/case/cathay-life/claim-states.png';
+import homeHierarchy from '../../assets/case/cathay-life/home-hierarchy.png';
+import loans from '../../assets/case/cathay-life/loans.png';
+import notifications from '../../assets/case/cathay-life/notifications.png';
+import account from '../../assets/case/cathay-life/account.png';
+import illustrationMascot from '../../assets/case/cathay-life/illustration-mascot.png';
+import illustrationCharacters from '../../assets/case/cathay-life/illustration-characters.png';
+import illustrationScenes from '../../assets/case/cathay-life/illustration-scenes.png';
+import maze from '../../assets/case/cathay-life/maze.png';
+import phoneMask from '../../assets/case/cathay-life/phone-mask.png';
+
+const SLUG = 'cathay-life';
+const index = works.findIndex((w) => w.slug === 'mml');
+const next = works[(index + 1) % works.length];
+
+const chapters = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'challenge', label: 'The challenge' },
+  { id: 'research', label: 'Research' },
+  { id: 'strategy', label: 'Strategy' },
+  { id: 'alignment', label: 'Alignment' },
+  { id: 'design', label: 'Design' },
+  { id: 'illustration', label: 'Illustration' },
+  { id: 'impact', label: 'Impact' },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+const num = (id: string) => pad(chapters.findIndex((c) => c.id === id) + 1);
+const share = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
+const wideSizes = '(min-width: 1680px) 1584px, 94vw';
+const phone = { width: 640, height: 1294 };
+
+const voices = [
+  { who: 'Sales', quote: 'Can the entry point for CW look less like a banner?', note: 'CW is Cathay’s step-count program for policy premium discounts.' },
+  { who: 'Senior leadership', quote: 'Member points — Xiaoshu Points (小樹點) — will be a major push; it needs stronger prominence.' },
+  { who: 'Marketing', quote: 'If banners are reduced or removed, how will we promote campaigns?' },
+  { who: 'Claims department', quote: 'We need to show step-by-step claim flow details to users.' },
+];
+
+const statuses = ['Submitted', 'Under review', 'Additional documents needed', 'Approved', 'Payout scheduled'];
+
+const ages = ['21–30', '31–40', '41–50', '51–60', '61+'];
+const scores = [
+  { label: 'Color comfort', values: [6.26, 6.06, 6.14, 6.1, 6.06], avg: 6.13 },
+  { label: 'Information comprehension', values: [6.21, 5.94, 6.07, 6.04, 5.86], avg: 6.02 },
+];
+// Shade cells on the 5.5–6.5 band so small differences stay visible but honest.
+const shade = (v: number) => Math.max(0.12, Math.min(1, (v - 5.5) / 1));
+---
+
+<Case
+  title="Cathay Life — Redesigning Insurance for a Pandemic Era · Terry Wu"
+  description="Case study: redesigning Cathay Life's app during COVID-19 — from an ad-heavy portal to a personal, self-service home for 6M+ policyholders."
+  image={share.src}
+  chapters={chapters}
+>
+  <CaseHero
+    client="Cathay Life · Mobile app"
+    title="Redesigning Insurance for a Pandemic Era"
+    intro="When COVID-19 kept customers away from agents, I led the redesign of Cathay Life’s app — turning a stalled, ad-heavy portal into a personal, self-service home for 6M+ policyholders."
+    index={index + 1}
+    total={works.length}
+    meta={[
+      { k: 'Role', v: 'UX Designer — led the redesign' },
+      { k: 'Scope', v: 'Product design · User validation · Cross-functional alignment' },
+      { k: 'Team', v: 'With the Cathay Life PM team' },
+      { k: 'Platform', v: 'Mobile app' },
+    ]}
+    cover={cover}
+    coverAlt="Redesigned Cathay Life app on three phones over a green background"
+    stats={[
+      { value: 6, suffix: 'M+', label: 'Policyholders served' },
+      { value: 80, prefix: '~', suffix: '%', label: 'App user growth in a year' },
+      { value: 2000, prefix: '~', label: 'Users in post-launch testing' },
+      { value: 8, suffix: '/10', label: 'Average satisfaction' },
+    ]}
+  />
+
+  <!-- 01 Overview -->
+  <Chapter id="overview" num={num('overview')} label="Overview">
+    <h2 class="c-h2" data-split-lines>From agent-first to <span class="serif">app-first</span>.</h2>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">The context</p>
+        <div class="prose">
+          <p>
+            Cathay Life, Taiwan’s largest insurer, serves <strong>6M+ policyholders</strong>. Despite offering core services — premium payments, claims and policy loans — the app’s adoption was low and growth had stalled.
+          </p>
+          <p>In response to COVID-19, I led the app redesign with the PM team, modernizing an outdated experience to reignite digital growth.</p>
+        </div>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">My role</p>
+        <div class="prose">
+          <p>
+            I led end to end — requirements, research, and interaction and UI design. User interviews clarified key pain points and sharpened our direction. I co-planned the roadmap and priorities with the PM, <strong>aligning cross-functional stakeholders around a UX-first approach</strong>.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="shift" data-reveal="fade-up" aria-label="Shift: from agent-first interactions to app-first self-service">
+      <span class="shift__from">Agent-first interactions</span>
+      <span class="shift__arrow" aria-hidden="true"></span>
+      <span class="shift__to">App-first self-service</span>
+    </div>
+  </Chapter>
+
+  <!-- 02 Challenge -->
+  <Chapter id="challenge" num={num('challenge')} label="The challenge">
+    <h2 class="c-h2" data-split-lines>A challenge sparked by <span class="serif">COVID-19</span></h2>
+    <div class="split split--media">
+      <div class="stack">
+        <div class="card-plain" data-reveal="fade-up">
+          <span class="card-plain__num">01</span>
+          <p class="card-plain__lead">As COVID-19 emerged in 2019–2020, customers became reluctant to meet agents in person.</p>
+        </div>
+        <div class="card-plain" data-reveal="fade-up">
+          <span class="card-plain__num">02</span>
+          <p class="card-plain__lead">Claim payouts rose, increasing pressure to reduce internal labor costs.</p>
+        </div>
+      </div>
+      <Figure src={covidStreet} alt="A crowded city street with people wearing face masks" ratio="4 / 5" parallax sizes="(min-width: 900px) 34vw, 92vw" widths={[500, 800, 1200, 1600]} />
+    </div>
+
+    <div class="split split--media">
+      <div class="stack" data-reveal="fade-up">
+        <h3 class="c-h3">Traditional insurance at a turning point</h3>
+        <div class="prose">
+          <p>
+            The company wanted customers to complete key insurance tasks directly in the app — reducing purchase friction and improving safety during the pandemic.
+          </p>
+          <p>But usage was still low, revealing an experience gap we needed to close. It accelerated a pivot from <strong>agent-first interactions to app-first self-service</strong>.</p>
+        </div>
+      </div>
+      <Figure src={turningPoint} alt="Illustration of two people climbing forms beside an hourglass" bg="#ffffff" sizes="(min-width: 900px) 34vw, 92vw" widths={[500, 800, 1140]} />
+    </div>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Knowing our users</h3>
+      <div class="age-callout" data-reveal="fade-up">
+        <span class="age-callout__num"><span data-count="42">42</span></span>
+        <p class="prose">
+          Internal data showed the <strong>average app user was around 42 years old</strong>. To make decisions actionable, we grouped needs into three segments.
+        </p>
+      </div>
+    </div>
+    <Figure
+      src={userSegments}
+      alt="Three user segments: protection policyholder, financial policyholder, and users holding a leaflet or no policy"
+      caption="Three user segments — protection, financial, and leaflet-or-none"
+      bg="#ffffff"
+      zoom
+      widths={[600, 1000, 1680]}
+    />
+    <p class="prose" data-reveal="fade-up">
+      I also proposed custom illustrations to better reflect real-life scenarios and make the interface feel more approachable — more on that in chapter {num('illustration')}.
+    </p>
+  </Chapter>
+
+  <!-- 03 Research -->
+  <Chapter id="research" num={num('research')} label="Research">
+    <h2 class="c-h2" data-split-lines>Starting at the first <span class="serif">impression</span></h2>
+    <p class="lead" data-reveal="fade-up">Reviewing login and home, I started from four hypotheses.</p>
+    <ol class="nlist" data-reveal="fade-up">
+      <li><span>01</span><span><strong>Frequent tasks were buried</strong> — policy lookup and payments often took 2+ layers.</span></li>
+      <li><span>02</span><span><strong>Non-personalized banners dominated</strong> prime space, reducing motivation.</span></li>
+      <li><span>03</span><span><strong>Registration and login were unclear and lengthy</strong>, with limited guidance.</span></li>
+      <li><span>04</span><span><strong>Channel confusion</strong> between the website and the app reduced clarity.</span></li>
+    </ol>
+    <Figure src={originalApp} alt="Screens from the original Cathay Life app before the redesign" caption="The app before the redesign" zoom widths={[600, 1000, 1680]} />
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">What we heard</h3>
+      <p class="prose" data-reveal="fade-up">
+        We ran <strong>six remote interviews</strong> with existing policyholders — covering both medical and investment-linked products — and heard consistent themes.
+      </p>
+    </div>
+    <ul class="voices voices--users">
+      <li data-reveal="fade-up"><p>“Home page ads get in the way — I often can’t find what I need.”</p></li>
+      <li data-reveal="fade-up"><p>“I mainly open the app to check or pay bills. For buying, I still contact my agent.”</p></li>
+      <li data-reveal="fade-up"><p>“Changing personal info or applying for a policy loan is too hard — I ask my agent instead.”</p></li>
+      <li data-reveal="fade-up"><p>“I don’t understand the difference between the website and the app; the website seems to have more info.”</p></li>
+    </ul>
+    <Figure src={interview} alt="Terry interviewing a policyholder remotely over Google Meet" caption="Interviewing policyholders remotely via Google Meet" class="bleed" ratio="21 / 9" parallax sizes={wideSizes} widths={[800, 1400, 1918]} />
+
+    <div class="split">
+      <Figure src={cardSorting} alt="Card sorting board grouping app touchpoints" caption="Card-based categorization" zoom sizes="(min-width: 900px) 34vw, 92vw" widths={[500, 900, 1784]} />
+      <Figure src={impactEffort} alt="Impact–effort quadrant map used to prioritize needs" caption="Impact–effort quadrant map" zoom bg="#f1f1f1" sizes="(min-width: 900px) 34vw, 92vw" widths={[500, 900, 1236]} />
+    </div>
+    <p class="prose" data-reveal="fade-up">
+      I organized the experience across key touchpoints with <strong>card-based categorization</strong>, then prioritized needs on a <strong>quadrant map</strong> (impact–effort matrix).
+    </p>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Visualizing the journey</h3>
+      <p class="prose" data-reveal="fade-up">
+        Concise journey maps — login → home → top tasks — spotlighted friction and opportunity points, helping the PM team and stakeholders <strong>align on where changes would have the greatest impact</strong>.
+      </p>
+    </div>
+    <Figure src={journeyMap} alt="Policyholder journey map across app tasks with emotion curve and pain points" caption="Policyholder app journey — emotions and pain points by step" zoom class="bleed" bg="#ffffff" sizes={wideSizes} widths={[800, 1400, 1656]} />
+  </Chapter>
+
+  <!-- 04 Strategy -->
+  <Chapter id="strategy" num={num('strategy')} label="Strategy">
+    <h2 class="c-h2" data-split-lines>Aligning user needs with <span class="serif">business goals</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      With the business shifting to self-service and lower claim-related support, I set three directions.
+    </p>
+    <div class="cards cards--3">
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">01</span>
+        <h3 class="c-h3">Portfolio first on Home</h3>
+        <p>Show a personal asset and coverage overview instead of generic ads.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">02</span>
+        <h3 class="c-h3">Easy service discovery</h3>
+        <p>Make policy services findable and self-initiated.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">03</span>
+        <h3 class="c-h3">Transparent progress</h3>
+        <p>Real-time status tracking, with required documents clearly listed.</p>
+      </div>
+    </div>
+    <div class="trio">
+      <Figure src={ia1} alt="Lightweight IA, part 1: personal coverage information" zoom sizes="(min-width: 1024px) 22vw, 30vw" widths={[400, 796]} />
+      <Figure src={ia2} alt="Lightweight IA, part 2: finance and investment information" zoom sizes="(min-width: 1024px) 22vw, 30vw" widths={[400, 794]} />
+      <Figure src={ia3} alt="Lightweight IA, part 3: coverage awareness and lifestyle content" zoom sizes="(min-width: 1024px) 22vw, 30vw" widths={[400, 796]} />
+      <p class="trio__caption">Lightweight IA for the new home</p>
+    </div>
+    <p class="prose" data-reveal="fade-up">
+      I first aligned senior executives and stakeholders with a <strong>lightweight IA</strong>, keeping the conversation on scope and flows rather than debating visual design too early.
+    </p>
+  </Chapter>
+
+  <!-- 05 Alignment -->
+  <Chapter id="alignment" num={num('alignment')} label="Alignment">
+    <h2 class="c-h2" data-split-lines>Balancing <span class="serif">divergent</span> voices</h2>
+    <p class="lead" data-reveal="fade-up">
+      Each stakeholder prioritized a different outcome. I used <strong>low-fidelity wireframes</strong> to test alternatives and make the trade-offs explicit.
+    </p>
+    <div class="debate">
+      <ul class="voices">
+        {
+          voices.map((v) => (
+            <li data-reveal="fade-up">
+              <p class="kicker">{v.who}</p>
+              <p>“{v.quote}”</p>
+              {v.note && <p class="voices__note">{v.note}</p>}
+            </li>
+          ))
+        }
+      </ul>
+      <div class="debate__media">
+        <Figure src={wireframe} alt="Low-fidelity wireframe of the new home used to test alternatives" caption="Lo-fi wireframe used to test trade-offs" zoom sizes="(min-width: 900px) 300px, 70vw" widths={[300, 600, 750]} />
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Simplifying business information and processes</h3>
+      <p class="prose" data-reveal="fade-up">
+        I interviewed stakeholders across functions to find the information and steps they worried users might overlook, listed every step in the underlying business flows, and <strong>distilled them into clear, card-based UI patterns</strong> so nothing critical would be missed.
+      </p>
+    </div>
+    <Figure src={businessFlows} alt="Business flow diagrams mapped to app screens" caption="Business flows distilled into card-based UI" zoom bg="#eeeeee" widths={[600, 1000, 1322]} />
+
+    <div class="states" data-reveal="fade-up">
+      <div class="states__from">
+        <span class="states__big">~<span data-count="20">20</span></span>
+        <span class="states__label">internal claim handling steps</span>
+        <span class="states__dots" aria-hidden="true">{Array.from({ length: 20 }, () => <i />)}</span>
+      </div>
+      <span class="states__arrow" aria-hidden="true"></span>
+      <ol class="states__to" aria-label="Plain-language claim statuses">
+        {
+          statuses.map((s, i) => (
+            <li style={`--i:${i}`}>
+              <span class="states__dot" />
+              {s}
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <p class="prose" data-reveal="fade-up">
+      The claims department manages around 20 handling steps internally. I translated them into <strong>user-friendly statuses with plain-language labels and next-step guidance</strong>.
+    </p>
+    <Figure src={claimStates} alt="Mapping of internal claim steps to front-end statuses" caption="Internal steps → front-end statuses" zoom bg="#eef0f2" widths={[600, 1000, 1198]} />
+  </Chapter>
+
+  <!-- 06 Design -->
+  <Chapter id="design" num={num('design')} label="Design">
+    <h2 class="c-h2" data-split-lines>Redesigning the home <span class="serif">hierarchy</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      The average user is around 40. Scanning speed and confidence improve when key numbers and actions come first — so on login, home presents <strong>a concise numeric overview and clear paths to common tasks</strong>.
+    </p>
+    <Figure src={homeHierarchy} alt="Annotated new home: AI virtual assistant, personal portfolio, application status, notification center, quick actions and investment policies" caption="The new home, annotated" zoom class="bleed" sizes={wideSizes} widths={[800, 1200, 1800]} ratio="16 / 10" fit="contain" bg="#f6eef2" />
+
+    <Feature
+      level={3}
+      narrow
+      title="Home — color-coded cards & focused info"
+      rows={[
+        { label: 'User pain point', text: 'Ads on the original home obscured key information, making it hard to quickly find what matters.' },
+        { label: 'Business need', text: 'Make the app more than policy info by bringing the CW step-count program and Xiaoshu Points into daily use.' },
+        { label: 'Design solution', text: 'Color-coded cards — two green for policy content, blue for CW, orange for Xiaoshu Points — so users can scan personal information at a glance.' },
+      ]}
+    >
+      <DeviceVideo slot="media" slug={SLUG} name="home-cards" mask={phoneMask.src} {...phone} label="Swiping through the color-coded cards on the new home" />
+    </Feature>
+    <Feature
+      level={3}
+      narrow
+      flip
+      title="Online application — post-call handoff"
+      rows={[
+        { label: 'User pain point', text: 'During the pandemic, customers preferred not to meet agents in person.' },
+        { label: 'Business need', text: 'Maintain application volume with an end-to-end online purchase flow.' },
+        { label: 'Design solution', text: 'After a phone call with an agent, the app guides customers to review proposals and contracts, upload documents, complete disclosures and e-sign.' },
+      ]}
+    >
+      <DeviceVideo slot="media" slug={SLUG} name="online-application" mask={phoneMask.src} {...phone} label="Completing an insurance application in the app" />
+    </Feature>
+    <Feature
+      level={3}
+      narrow
+      title="Claims — shared components & status tracking"
+      rows={[
+        { label: 'User pain point', text: 'Users often had no visibility into where their claim was stuck.' },
+        { label: 'Business need', text: 'Claims are complex — self-serve status should reduce inbound calls.' },
+        { label: 'Design solution', text: 'Reuse shared components from the purchase flow, show stage-based statuses — submission, review, closed/paid — and allow inline document uploads to unblock progress.' },
+      ]}
+    >
+      <DeviceVideo slot="media" slug={SLUG} name="claims-tracking" mask={phoneMask.src} {...phone} label="Tracking a claim's status in the app" />
+    </Feature>
+
+    <div class="stack">
+      <p class="kicker" data-reveal="fade-up">Across the app</p>
+      <h3 class="c-h3" data-reveal="fade-up">Fewer detours in everyday tasks</h3>
+    </div>
+    <div class="change">
+      <div class="change__head" data-reveal="fade-up">
+        <h4 class="change__title">Policy loans & repayments — streamlined entry</h4>
+        <ol class="nlist">
+          <li><span>01</span><span>Show the available loan amount and repayment due on entry, so users know what they can borrow and what they owe.</span></li>
+          <li><span>02</span><span>List policies by currency upfront to minimize selection effort across multiple policies.</span></li>
+          <li><span>03</span><span>Present marketing in a non-blocking half-sheet modal to avoid interrupting the task.</span></li>
+        </ol>
+      </div>
+      <Figure src={loans} alt="Policy loan flow before and after the redesign" zoom class="bleed" sizes={wideSizes} widths={[800, 1200, 1680]} />
+    </div>
+    <div class="change">
+      <div class="change__head" data-reveal="fade-up">
+        <h4 class="change__title">Notifications — simplified & categorized</h4>
+        <ol class="nlist">
+          <li><span>01</span><span>Group messages into category tabs — benefits, campaigns and health — with unread counts.</span></li>
+          <li><span>02</span><span>Swipe to mark as read or delete, with unread items clearly flagged.</span></li>
+          <li><span>03</span><span>Open campaign messages into a focused detail page with a single next step.</span></li>
+        </ol>
+      </div>
+      <Figure src={notifications} alt="Notification list before the redesign and the categorized notification center after" zoom class="bleed" sizes={wideSizes} widths={[800, 1200, 1680]} />
+    </div>
+    <div class="change">
+      <div class="change__head" data-reveal="fade-up">
+        <h4 class="change__title">Account center — clearer IA & in-app profile</h4>
+        <ol class="nlist">
+          <li><span>01</span><span>Reorganize the information architecture so unrelated features aren’t crammed into the same tab.</span></li>
+          <li><span>02</span><span>Let users view — and where appropriate, edit — personal information directly in the app, with no website hand-offs.</span></li>
+        </ol>
+      </div>
+      <Figure src={account} alt="Account center before and after the redesign" zoom class="bleed" sizes={wideSizes} widths={[800, 1200, 1680]} />
+    </div>
+  </Chapter>
+
+  <!-- 07 Illustration -->
+  <Chapter id="illustration" num={num('illustration')} label="Illustration">
+    <h2 class="c-h2" data-split-lines>Adding warmth & <span class="serif">want-to-use</span> appeal</h2>
+    <p class="lead" data-reveal="fade-up">
+      I advocated integrating illustration into the redesign to soften an otherwise numeric, text-heavy interface. <strong>The proposal quickly gained strong support from senior leadership.</strong>
+    </p>
+    <div class="split bleed">
+      <Figure src={illustrationMascot} alt="Cathay's Treebo mascot next to the redesigned home" caption="The legacy Treebo mascot" zoom sizes="(min-width: 900px) 46vw, 92vw" widths={[600, 1000, 1920]} />
+      <Figure src={illustrationCharacters} alt="Character sketches for users, agents and customer service, with personality notes" caption="Characters defined by user role and personality" zoom sizes="(min-width: 900px) 46vw, 92vw" widths={[600, 1000, 1920]} />
+    </div>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">Product style shift</p>
+        <div class="prose">
+          <p>Cathay had long relied on its “Treebo” mascot in the app, which no longer matched the new interface style.</p>
+          <p>Based on the target users, I defined a product personality and illustration tone: <strong>warm</strong> and <strong>professional</strong>.</p>
+        </div>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">Story-driven scenes</p>
+        <ol class="nlist">
+          <li><span>01</span><span>Consolidated style guidelines and character traits, and matched them to the right pages.</span></li>
+          <li><span>02</span><span>Specified scene characters, key elements and sizes before handing off to the visual designer.</span></li>
+          <li><span>03</span><span>Used thoughtfully, not excessively — <strong>moments before starting and upon completion</strong> — to reinforce positive emotion without distracting from tasks.</span></li>
+        </ol>
+      </div>
+    </div>
+    <Figure src={illustrationScenes} alt="Grid of app screens using the new warm illustration style" caption="Illustrated moments across the app" zoom class="bleed" ratio="16 / 9" sizes={wideSizes} widths={[800, 1400, 2000, 2738]} />
+  </Chapter>
+
+  <!-- 08 Impact -->
+  <Chapter id="impact" num={num('impact')} label="Impact">
+    <h2 class="c-h2" data-split-lines>From confusion to <span class="serif">clarity</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      Using Maze, we invited Cathay Life app users to online surveys and usability tests on the new home. <strong>Nearly 2,000 users</strong> took part.
+    </p>
+    <div class="stats stats--3">
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="65">65</span><small>%</small></span>
+        <span class="stat-cell__label">of participants were in our <strong>target group of 40 and above</strong>.</span>
+      </div>
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="8">8</span><small>/10</small></span>
+        <span class="stat-cell__label">average satisfaction, with strong feedback on <strong>color comfort and clarity</strong>.</span>
+      </div>
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="70">70</span><small>%</small></span>
+        <span class="stat-cell__label">found <strong>digital claims and document signing</strong> intuitive and easy to use.</span>
+      </div>
+    </div>
+    <Figure src={maze} alt="Maze usability test screens with a heatmap over the new home" caption="Remote usability testing in Maze" zoom widths={[600, 1000, 1680]} />
+
+    <figure class="heat" data-reveal="fade-up">
+      <figcaption class="heat__title">
+        <span class="kicker">Perceived experience by age group</span>
+        <span class="heat__scale">1 = worst · 7 = best</span>
+      </figcaption>
+      <div class="heat__scroll">
+        <table class="heat__table">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only">Measure</span></th>
+              {ages.map((a, i) => <th scope="col" class:list={{ 'is-oldest': i === ages.length - 1 }}>{a}</th>)}
+              <th scope="col">Average</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              scores.map((row) => (
+                <tr>
+                  <th scope="row">{row.label}</th>
+                  {row.values.map((v, i) => (
+                    <td class:list={{ 'is-oldest': i === row.values.length - 1 }} style={`--a:${shade(v).toFixed(2)}`}>
+                      {v.toFixed(2)}
+                    </td>
+                  ))}
+                  <td class="heat__avg">{row.avg.toFixed(2)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="heat__note">Post-test scores showed little difference between age groups — including users aged 61+.</p>
+    </figure>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Results one year after launch</h3>
+    </div>
+    <ul class="results">
+      <li data-reveal="fade-up">
+        <span class="results__big">~<span data-count="80">80</span><small>%</small></span>
+        <span>Growth in app users within a year</span>
+      </li>
+      <li data-reveal="fade-up">
+        <span class="results__big">10–15<small>%</small></span>
+        <span>Higher new-user registration completion</span>
+      </li>
+      <li data-reveal="fade-up">
+        <span class="results__big results__icon" aria-hidden="true">↗</span>
+        <span>Usage of digital claims and document signing rose significantly</span>
+      </li>
+      <li data-reveal="fade-up">
+        <span class="results__big results__icon" aria-hidden="true">↘</span>
+        <span>Noticeable drop in complaints about finding information</span>
+      </li>
+    </ul>
+
+    <blockquote class="testimonial" data-reveal="fade-up">
+      <p class="pull">Attentive and communicative — someone they could <em>fully rely on.</em></p>
+      <p class="pull-cite">Feedback from the PM team</p>
+      <p class="prose">
+        With me on board, the team felt confident tackling challenges and making strategic breakthroughs when working with senior stakeholders.
+      </p>
+    </blockquote>
+  </Chapter>
+
+  <NextProject client={next.client} title={next.title} image={next.image} href={next.href} accent={next.accent} />
+</Case>
+
+<style>
+  .card-plain__lead {
+    font-size: clamp(19px, 1.6vw, 25px);
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+    color: var(--fg) !important;
+  }
+  @media (min-width: 900px) {
+    .split--media {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+      align-items: center;
+    }
+  }
+
+  .age-callout {
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 3vw, 48px);
+  }
+  .age-callout__num {
+    font-size: clamp(96px, 12vw, 200px);
+    font-weight: 300;
+    letter-spacing: -0.07em;
+    line-height: 0.8;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Quotes */
+  .voices {
+    display: grid;
+    gap: 14px;
+  }
+  .voices li {
+    display: grid;
+    gap: 10px;
+    padding: clamp(20px, 2.2vw, 32px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+  }
+  .voices li > p:not(.kicker):not(.voices__note) {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(21px, 1.8vw, 28px);
+    line-height: 1.25;
+    color: var(--fg);
+  }
+  .voices__note {
+    font-size: 14px;
+    color: var(--fg-3);
+  }
+  @media (min-width: 900px) {
+    .voices--users {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .debate {
+    display: grid;
+    gap: clamp(24px, 3vw, 48px);
+    align-items: start;
+  }
+  .debate__media {
+    width: min(100%, 320px);
+    justify-self: center;
+  }
+  @media (min-width: 900px) {
+    .debate {
+      grid-template-columns: minmax(0, 1fr) 300px;
+    }
+    .debate__media {
+      position: sticky;
+      top: calc(var(--nav-h) + 32px);
+    }
+  }
+
+  /* Claim statuses: ~20 internal steps -> 5 plain-language statuses */
+  .states {
+    display: grid;
+    gap: 28px;
+    align-items: center;
+    padding: clamp(24px, 3.4vw, 56px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .states__from {
+    display: grid;
+    gap: 10px;
+    align-content: start;
+  }
+  .states__big {
+    font-size: clamp(56px, 6vw, 104px);
+    font-weight: 300;
+    letter-spacing: -0.06em;
+    line-height: 0.9;
+    color: var(--fg-3);
+  }
+  .states__label {
+    font-size: 15px;
+    color: var(--fg-2);
+  }
+  .states__dots {
+    display: grid;
+    grid-template-columns: repeat(10, 8px);
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .states__dots i {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: rgba(241, 241, 241, 0.18);
+  }
+  .states__arrow {
+    position: relative;
+    height: 1px;
+    min-width: 48px;
+    background: linear-gradient(90deg, var(--line-strong), var(--accent));
+  }
+  .states__arrow::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: -4px;
+    width: 9px;
+    height: 9px;
+    border-top: 1px solid var(--accent);
+    border-right: 1px solid var(--accent);
+    transform: rotate(45deg);
+  }
+  .states__to {
+    position: relative;
+    display: grid;
+    gap: 14px;
+  }
+  .states__to::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 10px;
+    bottom: 10px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), rgba(155, 140, 255, 0.2));
+  }
+  .states__to li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: clamp(16px, 1.3vw, 20px);
+    letter-spacing: -0.01em;
+  }
+  .states__dot {
+    position: relative;
+    width: 13px;
+    height: 13px;
+    flex: none;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+  }
+  .states__to li:last-child .states__dot {
+    background: var(--accent);
+  }
+  @media (min-width: 900px) {
+    .states {
+      grid-template-columns: auto minmax(60px, 0.5fr) minmax(0, 1fr);
+    }
+  }
+
+  /* Before/after blocks */
+  .change {
+    display: grid;
+    gap: clamp(24px, 3vw, 40px);
+  }
+  .change__head {
+    display: grid;
+    gap: 20px;
+  }
+  .change__title {
+    font-size: clamp(22px, 1.9vw, 30px);
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  @media (min-width: 1024px) {
+    .change__head {
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+      align-items: start;
+    }
+  }
+
+  .stats--3 {
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 900px) {
+    .stats--3 {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  /* Age heatmap (rebuilt from the original chart) */
+  .heat {
+    display: grid;
+    gap: 20px;
+    margin: 0;
+    padding: clamp(22px, 3vw, 48px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .heat__title {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+  }
+  .heat__scale {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--fg-3);
+  }
+  .heat__scroll {
+    overflow-x: auto;
+  }
+  .heat__table {
+    width: 100%;
+    min-width: 560px;
+    border-collapse: separate;
+    border-spacing: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .heat__table th {
+    font-weight: 400;
+    text-align: left;
+    font-size: 13px;
+    color: var(--fg-3);
+    padding: 6px 8px;
+  }
+  .heat__table thead th {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: center;
+  }
+  .heat__table thead th.is-oldest {
+    color: var(--accent);
+  }
+  .heat__table tbody th {
+    font-size: 15px;
+    color: var(--fg-2);
+    width: 22%;
+  }
+  .heat__table td {
+    padding: 16px 8px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 16px;
+    color: var(--fg);
+    background: rgba(111, 91, 255, calc(var(--a) * 0.55));
+  }
+  .heat__table td.is-oldest {
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .heat__table .heat__avg {
+    background: none;
+    font-size: clamp(28px, 2.6vw, 40px);
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    color: var(--accent);
+  }
+  .heat__note {
+    font-size: 15px;
+    color: var(--fg-2);
+  }
+
+  .results {
+    display: grid;
+    gap: 14px;
+  }
+  .results li {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding: clamp(22px, 2.4vw, 36px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(100% 100% at 0% 0%, rgba(111, 91, 255, 0.12), transparent 60%),
+      linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+    color: var(--fg-2);
+    font-size: 15px;
+    line-height: 1.45;
+  }
+  .results__big {
+    display: flex;
+    align-items: baseline;
+    white-space: nowrap;
+    font-size: clamp(44px, 4.4vw, 72px);
+    font-weight: 300;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .results__big small {
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+  .results__icon {
+    color: var(--accent);
+  }
+  @media (min-width: 700px) {
+    .results {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+</style>

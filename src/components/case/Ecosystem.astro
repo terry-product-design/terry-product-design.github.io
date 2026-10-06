@@ -1,0 +1,367 @@
+---
+// IMSLP ecosystem flywheel: Website ⇄ Tool ⇄ Social, redrawn as an animated SVG.
+const cx = 400;
+const cy = 300;
+const r = 168;
+const P = (deg: number, rr = r) => {
+  const a = (deg * Math.PI) / 180;
+  return [+(cx + rr * Math.cos(a)).toFixed(2), +(cy + rr * Math.sin(a)).toFixed(2)];
+};
+const arc = (a1: number, a2: number) => {
+  const [x1, y1] = P(a1);
+  const [x2, y2] = P(a2);
+  return `M${x1} ${y1} A${r} ${r} 0 0 1 ${x2} ${y2}`;
+};
+const arcRev = (a1: number, a2: number) => {
+  const [x1, y1] = P(a2);
+  const [x2, y2] = P(a1);
+  return `M${x1} ${y1} A${r} ${r} 0 0 0 ${x2} ${y2}`;
+};
+
+const nodes = [
+  { key: 'web', deg: 270, title: 'IMSLP Website', text: 'Find sheet music and commercial recordings' },
+  { key: 'social', deg: 30, title: 'IMSLP Social', text: 'Exposure, networking and job opportunities for musicians' },
+  { key: 'tool', deg: 150, title: 'IMSLP Tool', text: 'Sheet library, annotation tools and tuner — this app', current: true },
+];
+const gap = 13;
+const arcs = [
+  { id: 'eco-a1', a1: 270 + gap, a2: 390 - gap, mid: 330 },
+  { id: 'eco-a2', a1: 30 + gap, a2: 150 - gap, mid: 90 },
+  { id: 'eco-a3', a1: 150 + gap, a2: 270 - gap, mid: 210 },
+];
+
+const flows = [
+  {
+    pair: 'Website ⇄ Social',
+    out: 'Drives user traffic to the new social platform',
+    back: 'Generates new topics that bring users back to the main site',
+  },
+  {
+    pair: 'Social ⇄ Tool',
+    out: 'Attracts a wider range of musicians to the ecosystem',
+    back: 'Enables musicians to practice and record directly',
+  },
+  {
+    pair: 'Tool ⇄ Website',
+    out: 'Supports brand operations through revenue flow',
+    back: 'Guides users to save scores into their personal library',
+  },
+];
+---
+
+<div class="eco" data-eco>
+  <div class="eco__stage">
+    <svg class="eco__svg" viewBox="0 0 800 600" role="img" aria-labelledby="eco-title">
+      <title id="eco-title">IMSLP ecosystem: Website, Tool and Social feed each other in a loop</title>
+      <defs>
+        <linearGradient id="eco-grad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#c9bfff"></stop>
+          <stop offset="1" stop-color="#6f5bff"></stop>
+        </linearGradient>
+        <radialGradient id="eco-core" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="rgba(111,91,255,0.28)"></stop>
+          <stop offset="1" stop-color="rgba(111,91,255,0)"></stop>
+        </radialGradient>
+      </defs>
+
+      <circle cx={cx} cy={cy} r={r + 70} fill="url(#eco-core)"></circle>
+      <circle class="eco__track" cx={cx} cy={cy} r={r}></circle>
+      <circle class="eco__inner" cx={cx} cy={cy} r={r - 46}></circle>
+
+      {
+        arcs.map((a, i) => (
+          <>
+            <path id={a.id} class="eco__arc" d={arc(a.a1, a.a2)} pathLength="1" style={`--d:${0.2 + i * 0.35}s`} />
+            <path id={`${a.id}-r`} d={arcRev(a.a1, a.a2)} fill="none" stroke="none" />
+            <circle class="eco__pulse" r="4">
+              <animateMotion dur="3.6s" repeatCount="indefinite" begin={`${i * 1.2}s`}>
+                <mpath href={`#${a.id}`} />
+              </animateMotion>
+            </circle>
+            <circle class="eco__pulse eco__pulse--back" r="3">
+              <animateMotion dur="4.4s" repeatCount="indefinite" begin={`${0.6 + i * 1.2}s`}>
+                <mpath href={`#${a.id}-r`} />
+              </animateMotion>
+            </circle>
+            <g class="eco__badge" transform={`translate(${P(a.mid, r + 34).join(' ')})`} style={`--d:${0.6 + i * 0.35}s`}>
+              <circle r="14" />
+              <text y="4.5" text-anchor="middle">
+                {i + 1}
+              </text>
+            </g>
+          </>
+        ))
+      }
+
+      {
+        nodes.map((n, i) => {
+          const [x, y] = P(n.deg);
+          const anchor = n.deg === 270 ? 'middle' : n.deg === 30 ? 'start' : 'end';
+          const [tx, ty] = n.deg === 270 ? [x, y - 34] : n.deg === 30 ? [x + 26, y + 38] : [x - 26, y + 38];
+          return (
+            <g class:list={['eco__node', { 'is-current': n.current }]} style={`--d:${0.1 + i * 0.2}s`}>
+              <circle class="eco__halo" cx={x} cy={y} r="22" />
+              <circle class="eco__dot" cx={x} cy={y} r="9" />
+              <text class="eco__name" x={tx} y={ty} text-anchor={anchor}>
+                {n.title.replace('IMSLP ', '')}
+              </text>
+            </g>
+          );
+        })
+      }
+
+      <text class="eco__center" x={cx} y={cy - 6} text-anchor="middle">IMSLP</text>
+      <text class="eco__center-sub" x={cx} y={cy + 20} text-anchor="middle">ECOSYSTEM</text>
+    </svg>
+  </div>
+
+  <div class="eco__nodes">
+    {
+      nodes.map((n) => (
+        <div class:list={['eco__nodecard', { 'is-current': n.current }]}>
+          <h3>
+            {n.title}
+            {n.current && <span class="eco__tag">This project</span>}
+          </h3>
+          <p>{n.text}</p>
+        </div>
+      ))
+    }
+  </div>
+
+  <ol class="eco__flows">
+    {
+      flows.map((f, i) => (
+        <li>
+          <span class="eco__flow-num">{i + 1}</span>
+          <div>
+            <p class="eco__flow-pair">{f.pair}</p>
+            <p>
+              <span class="eco__dir">→</span>
+              {f.out}
+            </p>
+            <p>
+              <span class="eco__dir">←</span>
+              {f.back}
+            </p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</div>
+
+<style>
+  .eco {
+    display: grid;
+    gap: clamp(32px, 4vw, 56px);
+    padding: clamp(20px, 4vw, 64px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .eco__stage {
+    width: min(100%, 760px);
+    justify-self: center;
+  }
+  .eco__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .eco__track {
+    fill: none;
+    stroke: rgba(241, 241, 241, 0.07);
+    stroke-width: 30;
+  }
+  .eco__inner {
+    fill: none;
+    stroke: rgba(241, 241, 241, 0.08);
+    stroke-dasharray: 2 6;
+  }
+  .eco__arc {
+    fill: none;
+    stroke: url(#eco-grad);
+    stroke-width: 30;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    opacity: 0.9;
+    transition: stroke-dashoffset 1.4s var(--ease-in-out) var(--d);
+  }
+  .eco:global(.is-on) .eco__arc {
+    stroke-dashoffset: 0;
+  }
+  .eco__pulse {
+    fill: #fff;
+    opacity: 0;
+    transition: opacity 0.6s ease 1.6s;
+  }
+  .eco__pulse--back {
+    fill: #1b1530;
+  }
+  .eco:global(.is-on) .eco__pulse {
+    opacity: 0.95;
+  }
+  .eco__badge {
+    opacity: 0;
+    transition: opacity 0.6s ease var(--d);
+  }
+  .eco:global(.is-on) .eco__badge {
+    opacity: 1;
+  }
+  .eco__badge circle {
+    fill: #0e0b17;
+    stroke: var(--accent);
+  }
+  .eco__badge text {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    fill: var(--accent);
+  }
+  .eco__node {
+    opacity: 0;
+    transform-box: fill-box;
+    transition: opacity 0.8s ease var(--d);
+  }
+  .eco:global(.is-on) .eco__node {
+    opacity: 1;
+  }
+  .eco__halo {
+    fill: rgba(155, 140, 255, 0.14);
+    stroke: rgba(155, 140, 255, 0.4);
+  }
+  .eco__dot {
+    fill: var(--fg);
+  }
+  .eco__node.is-current .eco__dot {
+    fill: var(--accent);
+  }
+  .eco__node.is-current .eco__halo {
+    animation: halo 2.4s ease-out infinite;
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  @keyframes halo {
+    0% {
+      transform: scale(0.8);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.6);
+      opacity: 0;
+    }
+  }
+  .eco__name {
+    font-family: var(--font-sans);
+    font-size: 30px;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    fill: var(--fg);
+  }
+  .eco__node.is-current .eco__name {
+    fill: var(--accent);
+  }
+  .eco__center {
+    font-family: var(--font-sans);
+    font-size: 26px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    fill: var(--fg);
+  }
+  .eco__center-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    fill: var(--fg-3);
+  }
+
+  .eco__nodes {
+    display: grid;
+    gap: 12px;
+  }
+  .eco__nodecard {
+    display: grid;
+    gap: 6px;
+    padding: 18px 20px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(8, 5, 15, 0.5);
+  }
+  .eco__nodecard.is-current {
+    border-color: rgba(155, 140, 255, 0.45);
+    background: rgba(111, 91, 255, 0.08);
+  }
+  .eco__nodecard h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 19px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .eco__nodecard p {
+    font-size: 15px;
+    color: var(--fg-2);
+  }
+  .eco__tag {
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--accent-2);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  .eco__flows {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--line);
+  }
+  .eco__flows li {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 12px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .eco__flow-num {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+  }
+  .eco__flows p {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--fg-2);
+  }
+  .eco__flows .eco__flow-pair {
+    margin-bottom: 6px;
+    font-size: 17px;
+    color: var(--fg);
+  }
+  .eco__dir {
+    display: inline-block;
+    width: 1.4em;
+    color: var(--accent);
+  }
+
+  @media (min-width: 900px) {
+    .eco__nodes,
+    .eco__flows {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 24px;
+    }
+  }
+</style>

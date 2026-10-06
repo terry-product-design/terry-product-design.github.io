@@ -1,0 +1,237 @@
+---
+import { Picture } from 'astro:assets';
+import { explorations } from '../data/content';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="xp section" id="explorations" data-section="explorations">
+  <div class="container">
+    <header class="xp__head">
+      <p class="label" data-reveal="fade-up">
+        <span class="label__index">05</span><span class="label__rule"></span><span>Explorations</span>
+      </p>
+      <h2 class="xp__lead" data-split-lines>
+        {explorations.lead[0]}<br />
+        <span class="serif">{explorations.lead[1]}</span>
+      </h2>
+    </header>
+
+    <div class="xp__grid">
+      <div class="xp__media" aria-hidden="true">
+        <div class="xp__frame">
+          {
+            explorations.items.map((it, i) => (
+              <div class:list={['xp__img', { 'is-active': i === 0 }]} data-xp-img>
+                <Picture
+                  src={it.image}
+                  alt=""
+                  widths={[420, 640, 900]}
+                  sizes="(min-width: 1024px) 34vw, 1px"
+                  formats={['avif', 'webp']}
+                  fallbackFormat="jpg"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            ))
+          }
+          <div class="xp__counter">
+            <span data-xp-count>01</span> / {pad(explorations.items.length)}
+          </div>
+        </div>
+      </div>
+
+      <ol class="xp__list">
+        {
+          explorations.items.map((it, i) => (
+            <li class:list={['xp__item', { 'is-active': i === 0 }]} data-xp-item={i}>
+              <div class="xp__thumb">
+                <Picture
+                  src={it.image}
+                  alt={it.alt}
+                  widths={[420, 640]}
+                  sizes="(min-width: 1024px) 1px, 90vw"
+                  formats={['avif', 'webp']}
+                  fallbackFormat="jpg"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <p class="xp__kind">
+                <span>{pad(i + 1)}</span>
+                {it.kind}
+              </p>
+              <h3 class="xp__title">{it.title}</h3>
+              <p class="xp__text">{it.text}</p>
+              <p class="xp__note">
+                <span aria-hidden="true">“</span>
+                {it.note}
+                <span aria-hidden="true">”</span>
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .xp__head {
+    display: grid;
+    gap: 28px;
+    margin-bottom: clamp(56px, 7vw, 120px);
+  }
+  .xp__lead {
+    font-size: clamp(36px, 5.4vw, 92px);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 1;
+  }
+  .xp__lead .serif {
+    color: var(--accent);
+  }
+
+  .xp__grid {
+    display: grid;
+    gap: 40px;
+  }
+  .xp__media {
+    display: none;
+  }
+  .xp__list {
+    display: grid;
+    gap: clamp(56px, 8vw, 96px);
+  }
+  .xp__item {
+    display: grid;
+    gap: 14px;
+  }
+  .xp__thumb {
+    overflow: hidden;
+    border-radius: var(--radius);
+    aspect-ratio: 4 / 3;
+    background: var(--surface);
+    margin-bottom: 10px;
+  }
+  .xp__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .xp__kind {
+    display: flex;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .xp__kind span {
+    color: var(--accent);
+  }
+  .xp__title {
+    font-size: clamp(30px, 3.2vw, 54px);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 1.05;
+  }
+  .xp__text {
+    color: var(--fg-2);
+    max-width: 46ch;
+  }
+  .xp__note {
+    margin-top: 8px;
+    padding-left: 16px;
+    border-left: 1px solid var(--accent);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(19px, 1.5vw, 24px);
+    line-height: 1.3;
+    max-width: 36ch;
+    color: var(--fg);
+  }
+
+  @media (min-width: 1024px) {
+    .xp__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      gap: clamp(48px, 7vw, 140px);
+    }
+    .xp__media {
+      display: block;
+    }
+    .xp__frame {
+      position: sticky;
+      top: calc((100svh - min(34vw, 62svh)) / 2 + var(--nav-h) / 2);
+      width: 100%;
+      height: min(34vw, 62svh);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .xp__img {
+      position: absolute;
+      inset: 0;
+      clip-path: inset(100% 0 0 0);
+      transition: clip-path 1s var(--ease-in-out);
+      z-index: 1;
+    }
+    .xp__img.is-active {
+      clip-path: inset(0 0 0 0);
+      z-index: 2;
+    }
+    .xp__img.was-active {
+      clip-path: inset(0 0 0 0);
+      z-index: 1;
+    }
+    .xp__img :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.15);
+      transition: transform 1.4s var(--ease-out);
+    }
+    .xp__img.is-active :global(img) {
+      transform: none;
+    }
+    .xp__counter {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 3;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(8, 5, 15, 0.6);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fg-2);
+    }
+    .xp__thumb {
+      display: none;
+    }
+    .xp__list {
+      gap: 0;
+    }
+    .xp__item {
+      min-height: 76svh;
+      align-content: center;
+      opacity: 0.28;
+      transition: opacity 0.6s ease;
+    }
+    .xp__item.is-active {
+      opacity: 1;
+    }
+    .xp__item:first-child {
+      min-height: 60svh;
+      align-content: start;
+      padding-top: 6svh;
+    }
+    .xp__item:last-child {
+      min-height: 70svh;
+    }
+  }
+</style>

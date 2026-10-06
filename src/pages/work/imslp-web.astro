@@ -1,0 +1,622 @@
+---
+import { getImage } from 'astro:assets';
+import Case from '../../layouts/Case.astro';
+import CaseHero from '../../components/case/CaseHero.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Figure from '../../components/case/Figure.astro';
+import BeforeAfter from '../../components/case/BeforeAfter.astro';
+import NextProject from '../../components/case/NextProject.astro';
+import { works } from '../../data/content';
+
+import cover from '../../assets/case/imslp-web/cover.png';
+import oldComposers from '../../assets/case/imslp-web/old-composers.png';
+import google1 from '../../assets/case/imslp-web/google-1.png';
+import google2 from '../../assets/case/imslp-web/google-2.png';
+import beta1 from '../../assets/case/imslp-web/beta-1.png';
+import beta2 from '../../assets/case/imslp-web/beta-2.png';
+import homeOld from '../../assets/case/imslp-web/home-old.png';
+import homeNewWorks from '../../assets/case/imslp-web/home-new-works.png';
+import homeNewPeople from '../../assets/case/imslp-web/home-new-people.png';
+import workOld1 from '../../assets/case/imslp-web/work-old-1.png';
+import workNew1 from '../../assets/case/imslp-web/work-new-1.png';
+import workOld2 from '../../assets/case/imslp-web/work-old-2.png';
+import workNew2 from '../../assets/case/imslp-web/work-new-2.png';
+import composerOld1 from '../../assets/case/imslp-web/composer-old-1.png';
+import composerNew1 from '../../assets/case/imslp-web/composer-new-1.png';
+import composerOld2 from '../../assets/case/imslp-web/composer-old-2.png';
+import composerNew2 from '../../assets/case/imslp-web/composer-new-2.png';
+import rwdTablet from '../../assets/case/imslp-web/rwd-tablet.png';
+import rwdIpad from '../../assets/case/imslp-web/rwd-ipad.png';
+import rwdMobile from '../../assets/case/imslp-web/rwd-mobile.png';
+import dark21 from '../../assets/case/imslp-web/dark-21.png';
+import dark22 from '../../assets/case/imslp-web/dark-22.png';
+import dark23 from '../../assets/case/imslp-web/dark-23.png';
+import dark24 from '../../assets/case/imslp-web/dark-24.png';
+import dark25 from '../../assets/case/imslp-web/dark-25.png';
+import dark26 from '../../assets/case/imslp-web/dark-26.png';
+import dark27 from '../../assets/case/imslp-web/dark-27.png';
+import dark28 from '../../assets/case/imslp-web/dark-28.png';
+import dark29 from '../../assets/case/imslp-web/dark-29.png';
+
+const index = works.findIndex((w) => w.slug === 'imslp_web');
+const next = works[(index + 1) % works.length];
+
+const chapters = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'problem', label: 'The problem' },
+  { id: 'research', label: 'Research' },
+  { id: 'design', label: 'Design' },
+  { id: 'validation', label: 'Validation' },
+  { id: 'results', label: 'Results' },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+const num = (id: string) => pad(chapters.findIndex((c) => c.id === id) + 1);
+const share = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
+
+const darkShots = [
+  { src: dark21, alt: 'Dark mode: My Scores library' },
+  { src: dark22, alt: 'Dark mode: membership plans' },
+  { src: dark23, alt: 'Dark mode: score preview dialog' },
+  { src: dark24, alt: 'Dark mode: browsing works with filters' },
+  { src: dark25, alt: 'Dark mode: composer page' },
+  { src: dark26, alt: 'Dark mode: work page with editions' },
+  { src: dark27, alt: 'Dark mode: My Scores with a confirmation toast' },
+  { src: dark28, alt: 'Dark mode: instruments by difficulty' },
+  { src: dark29, alt: 'Dark mode: recordings with a player' },
+];
+---
+
+<Case
+  title="IMSLP — Finding Music Again: A New Search Experience · Terry Wu"
+  description="Case study: redesigning search for the world's largest classical sheet music library — from an alphabetical catalog to musician-centered discovery."
+  image={share.src}
+  chapters={chapters}
+>
+  <CaseHero
+    client="IMSLP · Responsive website"
+    title="Finding Music Again — IMSLP’s New Search Experience"
+    intro="Musicians were leaving the world’s largest classical score library to search for its scores on Google. I redesigned search around how they actually look for music — and it became IMSLP’s primary search, after five years of redesigns that had been rolled back."
+    index={index + 1}
+    total={works.length}
+    meta={[
+      { k: 'Role', v: 'Product designer — research, IA, search flow, usability testing' },
+      { k: 'Scope', v: 'UX design · User validation · Responsive website' },
+      { k: 'Team', v: 'With IMSLP’s content and engineering teams' },
+      { k: 'Platform', v: 'Web — desktop, tablet, mobile, dark mode' },
+    ]}
+    cover={cover}
+    coverAlt="The redesigned IMSLP search on a tablet and two phones"
+    stats={[
+      { value: 90, prefix: '15 → ', suffix: '%', label: 'Homepage → work/composer page conversion' },
+      { value: 82, prefix: '+', suffix: '%', label: 'Pageviews per active homepage user' },
+      { value: 50, prefix: '−', suffix: '%', label: 'Average time to complete a search task' },
+      { value: 9, suffix: '/10', label: 'Interviewee NPS rating' },
+    ]}
+  />
+
+  <!-- 01 Overview -->
+  <Chapter id="overview" num={num('overview')} label="Overview">
+    <h2 class="c-h2" data-split-lines>From a library catalog to <span class="serif">musician-first</span> discovery.</h2>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">The context</p>
+        <div class="prose">
+          <p>
+            As the world’s largest classical music score library, IMSLP attracts <strong>millions of musicians every month</strong>. But its search was engineering-driven and hard to navigate.
+          </p>
+          <p>
+            I redesigned the search experience into a user-centered structure that improves discoverability, lowers the learning curve, and lays the foundation for the IMSLP App and future advanced features.
+          </p>
+        </div>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">My role</p>
+        <div class="prose">
+          <p>
+            I owned the information architecture, search flow design and usability testing, and led user research through surveys and Google Analytics. With the content and engineering teams, I <strong>defined the data dimensions and backend logic</strong> that drove a full system redesign.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="shift" data-reveal="fade-up" aria-label="Shift: from alphabetical library catalog to musician-centered discovery">
+      <span class="shift__from">Alphabetical catalog</span>
+      <span class="shift__arrow" aria-hidden="true"></span>
+      <span class="shift__to">Musician-centered discovery</span>
+    </div>
+  </Chapter>
+
+  <!-- 02 Problem -->
+  <Chapter id="problem" num={num('problem')} label="The problem">
+    <h2 class="c-h2" data-split-lines>Searching IMSLP meant <span class="serif">leaving</span> IMSLP</h2>
+    <div class="split split--media">
+      <div class="stack" data-reveal="fade-up">
+        <p class="lead">
+          The legacy search was modeled on traditional library systems — <strong>alphabetical and unintuitive</strong> for modern users.
+        </p>
+        <div class="prose">
+          <p>
+            Musicians who couldn’t find what they needed turned to Google instead. That broke their journey — and weakened IMSLP’s role as the central place to discover music.
+          </p>
+        </div>
+      </div>
+      <Figure src={oldComposers} alt="The legacy IMSLP composer category: dense alphabetical index pages" caption="Before — the composer category as an A–Z index" zoom sizes="(min-width: 900px) 38vw, 92vw" widths={[600, 1000, 1600, 2976]} />
+    </div>
+  </Chapter>
+
+  <!-- 03 Research -->
+  <Chapter id="research" num={num('research')} label="Research">
+    <h2 class="c-h2" data-split-lines>Reassessing a beta with <span class="serif">data</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      When I joined, the team had already shipped a beta of the new search — but the founder wasn’t sure it worked. <strong>I proposed reassessing it with data.</strong>
+    </p>
+
+    <div class="steps">
+      <div class="steps__item" data-reveal="fade-up">
+        <span class="steps__num">01</span>
+        <p class="kicker">Google Analytics</p>
+        <p>A high bounce rate on the homepage suggested people weren’t entering the search flow at all.</p>
+      </div>
+      <div class="steps__item" data-reveal="fade-up">
+        <span class="steps__num">02</span>
+        <p class="kicker">User survey</p>
+        <p>To diagnose why, I ran a survey on what made finding scores hard.</p>
+      </div>
+      <div class="steps__item" data-reveal="fade-up">
+        <span class="steps__num">03</span>
+        <p class="kicker">Microsoft Clarity</p>
+        <p>Session data showed how people actually used the beta.</p>
+      </div>
+      <div class="steps__item" data-reveal="fade-up">
+        <span class="steps__num">04</span>
+        <p class="kicker">Founder interview</p>
+        <p>His knowledge of classical musicians’ daily search habits turned findings into priorities.</p>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="30">30</span><small>%</small></span>
+        <span class="stat-cell__label">felt the old site looked <strong>outdated and made scores hard to locate</strong>.</span>
+      </div>
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="20">20</span><small>%</small></span>
+        <span class="stat-cell__label">cited <strong>slow performance</strong>.</span>
+      </div>
+    </div>
+    <ul class="voices">
+      <li data-reveal="fade-up"><p>Many described the detour from IMSLP’s search to Google as frustrating.</p></li>
+      <li data-reveal="fade-up"><p>Some asked for more intuitive categories to shorten the learning curve.</p></li>
+    </ul>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">How musicians actually search</h3>
+      <p class="prose" data-reveal="fade-up">
+        Many users had grown used to <strong>searching for IMSLP scores through Google</strong> instead of the site’s own search — a habit follow-up interviews confirmed.
+      </p>
+    </div>
+    <div class="split">
+      <Figure src={google1} alt="Google results for a Bach work number, leading to IMSLP pages" caption="Search by work number" zoom sizes="(min-width: 900px) 34vw, 92vw" widths={[500, 900, 1751]} />
+      <Figure src={google2} alt="Google results for Beethoven on IMSLP" caption="Search by composer" zoom sizes="(min-width: 900px) 34vw, 92vw" widths={[500, 900, 1763]} />
+    </div>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">What the beta revealed</h3>
+    </div>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <ol class="nlist">
+          <li><span>01</span><span>Many users <strong>overlooked the left sidebar</strong> and its 3–4 levels of categories — they scrolled the content on the right instead, missing the intended structure.</span></li>
+          <li><span>02</span><span>Users almost always clicked the <strong>eye icon to preview</strong> files, rarely noticing the “more” icon for other options.</span></li>
+        </ol>
+      </div>
+      <div class="pair">
+        <Figure src={beta1} alt="Beta work page with a deep category sidebar" zoom sizes="(min-width: 900px) 17vw, 46vw" widths={[500, 900, 1400]} />
+        <Figure src={beta2} alt="Beta work page with a file options menu" zoom sizes="(min-width: 900px) 17vw, 46vw" widths={[500, 900, 1400]} />
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">From insight to design focus</h3>
+    </div>
+    <div class="cards cards--3">
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">01</span>
+        <h4 class="c-h3">Search navigation</h4>
+        <p>Support the entry points musicians use most — composer, title and musical era.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">02</span>
+        <h4 class="c-h3">Version discovery</h4>
+        <p>Clearer hierarchy between editions, and richer descriptions to tell them apart.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">03</span>
+        <h4 class="c-h3">Click interaction</h4>
+        <p>Typography and color contrast that guide people to the next action.</p>
+      </div>
+    </div>
+  </Chapter>
+
+  <!-- 04 Design -->
+  <Chapter id="design" num={num('design')} label="Design">
+    <h2 class="c-h2" data-split-lines>A search experience, <span class="serif">seamless</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      With insights from the survey, Clarity and interviews, I reworked the information structure and flow — <strong>while keeping what long-time users relied on</strong>.
+    </p>
+
+    <div class="page" data-reveal="fade-up">
+      <div class="page__head">
+        <p class="kicker">Homepage</p>
+        <ol class="nlist">
+          <li><span>01</span><span>Filter works or composers by <strong>instrument, era, style and publication date</strong>.</span></li>
+          <li><span>02</span><span>Type a work number straight into search — e.g. <strong>BWV 1004 or Op. 27</strong>.</span></li>
+        </ol>
+      </div>
+      <div class="bleed">
+        <BeforeAfter
+          items={[
+            {
+              id: 'web-home-works',
+              label: 'Browse works',
+              before: [{ src: homeOld, alt: 'Old IMSLP homepage', crumb: ['Old homepage'] }],
+              after: { src: homeNewWorks, alt: 'New homepage: works list with filters', crumb: ['Works', 'filter by instrument, era, style'] },
+            },
+            {
+              id: 'web-home-people',
+              label: 'Browse composers',
+              before: [{ src: oldComposers, alt: 'Old composer category as an A–Z index', crumb: ['Category: Composers', 'A–Z index'] }],
+              after: { src: homeNewPeople, alt: 'New homepage: composers list with filters', crumb: ['People', 'filter by era and nationality'] },
+            },
+          ]}
+        />
+      </div>
+    </div>
+
+    <div class="page" data-reveal="fade-up">
+      <div class="page__head">
+        <p class="kicker">Work page</p>
+        <ol class="nlist">
+          <li><span>01</span><span>A <strong>sidebar to jump between versions</strong>, with preview options.</span></li>
+          <li><span>02</span><span>An organized layout for scores, composers, audio, editions, conductors and instrumentation.</span></li>
+        </ol>
+      </div>
+      <div class="bleed">
+        <BeforeAfter
+          items={[
+            {
+              id: 'web-work-scores',
+              label: 'Scores & editions',
+              before: [{ src: workOld1, alt: 'Old work page with a long list of files', crumb: ['Old work page'] }],
+              after: { src: workNew1, alt: 'New work page: arrangements and transcriptions grouped with a version sidebar', crumb: ['Work page', 'versions in a sidebar'] },
+            },
+            {
+              id: 'web-work-info',
+              label: 'Work information',
+              before: [{ src: workOld2, alt: 'Old general information table for a work', crumb: ['Old work information'] }],
+              after: { src: workNew2, alt: 'New work information in a focused panel', crumb: ['Work page', 'information panel'] },
+            },
+          ]}
+        />
+      </div>
+    </div>
+
+    <div class="page" data-reveal="fade-up">
+      <div class="page__head">
+        <p class="kicker">Composer page</p>
+        <ol class="nlist">
+          <li><span>01</span><span>Categorized by <strong>popular works, style and era</strong> for faster exploration.</span></li>
+          <li><span>02</span><span>Curated external links for academic research and deeper discovery.</span></li>
+        </ol>
+      </div>
+      <div class="bleed">
+        <BeforeAfter
+          items={[
+            {
+              id: 'web-composer-works',
+              label: 'Composer’s works',
+              before: [{ src: composerOld1, alt: 'Old composer page: an alphabetical list of compositions', crumb: ['Old composer page'] }],
+              after: { src: composerNew1, alt: 'New composer page with works grouped and filterable', crumb: ['Composer page', 'works by category'] },
+            },
+            {
+              id: 'web-composer-about',
+              label: 'About & links',
+              before: [{ src: composerOld2, alt: 'Old composer category page with links', crumb: ['Old composer category'] }],
+              after: { src: composerNew2, alt: 'New composer profile with curated external links', crumb: ['Composer page', 'profile & links'] },
+            },
+          ]}
+        />
+      </div>
+    </div>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Every device, day and night</h3>
+      <p class="prose" data-reveal="fade-up">
+        Usage was fairly balanced across devices, but the beta underperformed off desktop. I redesigned every layout responsively for consistent cross-device use — and designed a <strong>dark mode</strong> across the experience.
+      </p>
+    </div>
+    <div class="devices">
+      <Figure src={rwdTablet} alt="Composer page on a tablet in landscape" caption="Tablet" zoom sizes="(min-width: 900px) 38vw, 92vw" widths={[600, 1000, 2048]} />
+      <Figure src={rwdIpad} alt="Composer page on a tablet in portrait" caption="Tablet, portrait" zoom sizes="(min-width: 900px) 22vw, 60vw" widths={[400, 800, 1668]} />
+      <Figure src={rwdMobile} alt="Composer page on a phone" caption="Mobile" zoom sizes="(min-width: 900px) 12vw, 40vw" widths={[360, 720]} />
+    </div>
+    <div class="dark bleed">
+      {darkShots.map((d) => <Figure src={d.src} alt={d.alt} zoom sizes="(min-width: 900px) 30vw, 92vw" widths={[480, 900, 1440]} />)}
+    </div>
+  </Chapter>
+
+  <!-- 05 Validation -->
+  <Chapter id="validation" num={num('validation')} label="Validation">
+    <h2 class="c-h2" data-split-lines>What we learned from <span class="serif">musicians</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      Alongside analytics, I led usability testing with <strong>10 participants</strong>, watching how they navigated the new search.
+    </p>
+    <div class="stats">
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><small>&gt;</small><span data-count="80">80</span><small>%</small></span>
+        <span class="stat-cell__label">completed the tasks successfully — showing clear UI improvements.</span>
+      </div>
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="9">9</span><small>/10</small></span>
+        <span class="stat-cell__label">NPS rating from interviewees.</span>
+      </div>
+    </div>
+    <ul class="voices voices--2">
+      <li data-reveal="fade-up"><p>“I like the new site; I’d use it more often now.”</p></li>
+      <li data-reveal="fade-up"><p>“The new filters are really convenient!”</p></li>
+    </ul>
+    <p class="prose" data-reveal="fade-up">
+      Participants reported reaching specific pieces and editions faster. The findings validated the direction and shaped further iterations.
+    </p>
+  </Chapter>
+
+  <!-- 06 Results -->
+  <Chapter id="results" num={num('results')} label="Results">
+    <h2 class="c-h2" data-split-lines>The search that <span class="serif">stayed</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      The new version was gradually adopted as <strong>IMSLP’s primary search</strong>, and now underpins the search logic of the IMSLP App.
+    </p>
+    <div class="conv" data-inview>
+      <p class="kicker">Homepage → work or composer page</p>
+      <div class="conv__row">
+        <span class="conv__label">Before</span>
+        <span class="conv__track"><span class="conv__fill conv__fill--before" style="--v:0.15"></span></span>
+        <span class="conv__n">15%</span>
+      </div>
+      <div class="conv__row">
+        <span class="conv__label">After</span>
+        <span class="conv__track"><span class="conv__fill" style="--v:0.9"></span></span>
+        <span class="conv__n conv__n--after">90%</span>
+      </div>
+    </div>
+    <ul class="results">
+      <li data-reveal="fade-up">
+        <span class="results__big">+<span data-count="82">82</span><small>%</small></span>
+        <span>Average pageviews per active homepage user</span>
+      </li>
+      <li data-reveal="fade-up">
+        <span class="results__big">−<span data-count="50">50</span><small>%</small></span>
+        <span>Average time to complete a search task</span>
+      </li>
+      <li data-reveal="fade-up">
+        <span class="results__big"><span data-count="9">9</span><small>/10</small></span>
+        <span>NPS rating from interviewees</span>
+      </li>
+    </ul>
+
+    <blockquote class="testimonial" data-reveal="fade-up">
+      <p class="pull">Five years of redesigns had been rolled back. <em>This one shipped.</em></p>
+      <p class="pull-cite">Feedback from IMSLP’s founder</p>
+      <p class="prose">
+        The founder was surprised and pleased: earlier redesign attempts over the past five years had been rolled back after user backlash. This time, the positive response gave the team the confidence to roll it out fully.
+      </p>
+    </blockquote>
+  </Chapter>
+
+  <NextProject client={next.client} title={next.title} image={next.image} href={next.href} accent={next.accent} />
+</Case>
+
+<style>
+  @media (min-width: 900px) {
+    .split--media {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      align-items: center;
+    }
+  }
+
+  .steps {
+    display: grid;
+    gap: 14px;
+  }
+  .steps__item {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: clamp(20px, 2.2vw, 30px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+    color: var(--fg-2);
+    font-size: 15px;
+  }
+  .steps__num {
+    font-size: 40px;
+    font-weight: 300;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--fg);
+  }
+  @media (min-width: 700px) {
+    .steps {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1200px) {
+    .steps {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  .voices {
+    display: grid;
+    gap: 14px;
+  }
+  .voices li {
+    padding: clamp(20px, 2.2vw, 32px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+  }
+  .voices li p {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(21px, 1.8vw, 28px);
+    line-height: 1.25;
+  }
+  @media (min-width: 900px) {
+    .voices {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .page {
+    display: grid;
+    gap: clamp(20px, 2.4vw, 32px);
+  }
+  .page__head {
+    display: grid;
+    gap: 16px;
+  }
+  @media (min-width: 1024px) {
+    .page__head {
+      grid-template-columns: minmax(0, 0.4fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  .devices {
+    display: grid;
+    gap: 14px;
+    align-items: end;
+    grid-template-columns: 1fr 1fr;
+  }
+  .devices > :first-child {
+    grid-column: 1 / -1;
+  }
+  @media (min-width: 900px) {
+    .devices {
+      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.25fr) minmax(0, 0.7fr);
+    }
+    .devices > :first-child {
+      grid-column: auto;
+    }
+  }
+  .dark {
+    display: grid;
+    gap: 12px;
+    padding: clamp(12px, 2vw, 24px);
+    border-radius: calc(var(--radius) + 6px);
+    background: #050308;
+    border: 1px solid var(--line);
+  }
+  @media (min-width: 700px) {
+    .dark {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .conv {
+    display: grid;
+    gap: 16px;
+    padding: clamp(22px, 3vw, 44px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .conv__row {
+    display: grid;
+    grid-template-columns: 60px minmax(0, 1fr) 72px;
+    align-items: center;
+    gap: 16px;
+  }
+  .conv__label {
+    font-size: 14px;
+    color: var(--fg-2);
+  }
+  .conv__track {
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(241, 241, 241, 0.05);
+    overflow: hidden;
+  }
+  .conv__fill {
+    display: block;
+    height: 100%;
+    width: calc(var(--v) * 100%);
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent-2), var(--accent));
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 1.4s var(--ease-out) 0.2s;
+  }
+  .conv__fill--before {
+    background: rgba(241, 241, 241, 0.35);
+    transition-delay: 0s;
+  }
+  .conv.is-on .conv__fill {
+    transform: none;
+  }
+  .conv__n {
+    font-size: clamp(24px, 2.2vw, 34px);
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    text-align: right;
+    color: var(--fg-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .conv__n--after {
+    color: var(--accent);
+  }
+
+  .results {
+    display: grid;
+    gap: 14px;
+  }
+  .results li {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding: clamp(22px, 2.4vw, 36px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(100% 100% at 0% 0%, rgba(111, 91, 255, 0.12), transparent 60%),
+      linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+    color: var(--fg-2);
+    font-size: 15px;
+  }
+  .results__big {
+    display: flex;
+    align-items: baseline;
+    font-size: clamp(44px, 4.4vw, 72px);
+    font-weight: 300;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .results__big small {
+    font-size: 0.5em;
+    color: var(--accent);
+  }
+  @media (min-width: 900px) {
+    .results {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

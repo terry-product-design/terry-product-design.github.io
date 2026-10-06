@@ -1,0 +1,377 @@
+---
+import { Picture } from 'astro:assets';
+import { works } from '../data/content';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<section class="work section" id="work" data-section="work">
+  <div class="work__glow" aria-hidden="true"></div>
+  <div class="container">
+    <header class="work__head">
+      <p class="label" data-reveal="fade-up">
+        <span class="label__index">02</span><span class="label__rule"></span><span>Selected work</span>
+      </p>
+      <h2 class="section-title work__title" data-split-lines>
+        Selected <span class="serif">case studies</span>
+      </h2>
+      <div class="work__aside" data-reveal="fade-up">
+        <p>Five projects where tangled flows became products people use every day — from a restaurant back office to iPad practice rooms, insurance and rewards.</p>
+        <span class="work__count">({pad(works.length)})</span>
+      </div>
+    </header>
+
+    <div class="work__stack">
+      {
+        works.map((w, i) => (
+          <article class="card" style={`--accent:${w.accent};--i:${i}`} data-card>
+            <div class="card__inner" data-card-inner>
+              <div class="card__info">
+                <div class="card__meta">
+                  <span class="card__index">{pad(i + 1)}</span>
+                  <span class="card__client">{w.client}</span>
+                  <span class="card__of">/ {pad(works.length)}</span>
+                </div>
+
+                <div class="card__body">
+                  <h3 class="card__title">
+                    <a href={w.href} class="card__title-link">
+                      {w.title}
+                    </a>
+                  </h3>
+                  <p class="card__summary">{w.summary}</p>
+                  <ul class="card__tags">
+                    {w.tags.map((t) => (
+                      <li class="chip">{t}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div class="card__foot">
+                  {w.metrics.length ? (
+                    <dl class="card__metrics">
+                      {w.metrics.map((m) => (
+                        <div class="metric">
+                          <dt class="metric__label">{m.label}</dt>
+                          <dd class="metric__value">
+                            {m.from !== undefined && (
+                              <>
+                                <span class="metric__from">{m.from}</span>
+                                <span class="metric__arrow" aria-label="to">→</span>
+                              </>
+                            )}
+                            <span class="metric__sign">{m.prefix}</span>
+                            <span data-count={m.value}>{m.value}</span>
+                            <span class="metric__unit">{m.suffix}</span>
+                          </dd>
+                        </div>
+                      ))}
+                    </dl>
+                  ) : (
+                    <blockquote class="card__quote">“{w.quote?.replace(/^“|”$/g, '')}”</blockquote>
+                  )}
+                  <a class="btn btn--solid card__cta" href={w.href} data-magnetic="0.2">
+                    <span class="roll">
+                      <span class="roll__inner" data-text="View case study">
+                        View case study
+                      </span>
+                    </span>
+                    <svg class="arrow" viewBox="0 0 14 14" aria-hidden="true">
+                      <path d="M3 11 L11 3 M5 3 H11 V9" fill="none" stroke="currentColor" stroke-width="1.4" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+
+              <a class="card__media" href={w.href} data-cursor="View" data-cursor-color={w.accent} tabindex="-1" aria-hidden="true">
+                <div class="card__media-glow" />
+                <div class="card__img" data-card-img>
+                  <Picture
+                    src={w.image}
+                    alt=""
+                    widths={[480, 760, 1100, 1500]}
+                    sizes="(min-width: 1024px) 52vw, 92vw"
+                    formats={['avif', 'webp']}
+                    fallbackFormat="jpg"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </a>
+            </div>
+            <div class="card__shade" data-card-shade aria-hidden="true" />
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .work {
+    padding-bottom: clamp(48px, 8vw, 120px);
+  }
+  .work__glow {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: min(1200px, 120vw);
+    height: 700px;
+    transform: translate(-50%, -30%);
+    background: radial-gradient(50% 50% at 50% 50%, rgba(73, 40, 220, 0.32), rgba(73, 40, 220, 0) 70%);
+    pointer-events: none;
+  }
+  .work__head {
+    position: relative;
+    display: grid;
+    gap: 28px;
+    margin-bottom: clamp(48px, 6vw, 96px);
+  }
+  .work__title .serif {
+    color: var(--accent);
+  }
+  .work__aside {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    color: var(--fg-2);
+    max-width: 100%;
+  }
+  .work__aside p {
+    max-width: 40ch;
+  }
+  .work__count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-3);
+  }
+
+  /* --- Stacked cards --- */
+  .work__stack {
+    position: relative;
+  }
+  .card {
+    position: sticky;
+    top: calc(var(--nav-h) + 12px + var(--i) * 14px);
+    margin-bottom: clamp(24px, 4vh, 48px);
+  }
+  .card:last-child {
+    margin-bottom: 0;
+  }
+  .card__inner {
+    position: relative;
+    display: grid;
+    gap: 24px;
+    padding: clamp(14px, 1.4vw, 22px);
+    border-radius: calc(var(--radius) + 6px);
+    background: linear-gradient(180deg, #16141f 0%, #110f18 100%);
+    border: 1px solid var(--line);
+    transform-origin: 50% 0%;
+    will-change: transform;
+    overflow: hidden;
+  }
+  .card__inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(60% 80% at 100% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+    pointer-events: none;
+  }
+  .card__shade {
+    position: absolute;
+    inset: 0;
+    border-radius: calc(var(--radius) + 6px);
+    background: #050309;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .card__info {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: clamp(10px, 1.6vw, 28px);
+  }
+  .card__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .card__index {
+    color: var(--accent);
+  }
+  .card__client {
+    color: var(--fg-2);
+  }
+  .card__of {
+    margin-left: auto;
+  }
+  .card__body {
+    display: grid;
+    gap: 18px;
+  }
+  .card__title {
+    font-size: clamp(30px, 3.4vw, 58px);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+  .card__title-link {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size 0.6s var(--ease-out);
+  }
+  .card__title-link:hover {
+    background-size: 100% 1px;
+  }
+  .card__summary {
+    color: var(--fg-2);
+    font-size: clamp(16px, 1.15vw, 18px);
+    max-width: 42ch;
+  }
+  .card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .card__foot {
+    display: grid;
+    gap: 28px;
+    margin-top: auto;
+  }
+  .card__metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  .metric {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .metric__label {
+    font-size: 13px;
+    color: var(--fg-3);
+  }
+  .metric__value {
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    font-size: clamp(48px, 5vw, 88px);
+    font-weight: 300;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric__sign,
+  .metric__unit {
+    color: var(--accent);
+    font-size: 0.6em;
+  }
+  .metric__sign {
+    margin-right: 0.06em;
+  }
+  .metric__from {
+    color: var(--fg-3);
+    font-size: 0.62em;
+  }
+  .metric__arrow {
+    margin: 0 0.18em;
+    font-size: 0.42em;
+    color: var(--accent);
+    align-self: center;
+  }
+  .card__quote {
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(22px, 1.9vw, 30px);
+    line-height: 1.2;
+    color: var(--fg);
+    max-width: 30ch;
+  }
+  .card__cta {
+    justify-self: start;
+  }
+
+  .card__media {
+    position: relative;
+    display: block;
+    border-radius: var(--radius);
+    overflow: hidden;
+    aspect-ratio: 4 / 3.4;
+    background: var(--surface-2);
+    isolation: isolate;
+  }
+  .card__media-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(241, 241, 241, 0.08);
+    pointer-events: none;
+  }
+  .card__img {
+    position: absolute;
+    inset: -8% 0;
+    will-change: transform;
+  }
+  .card__img :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease-out);
+  }
+  .card__media:hover .card__img :global(img) {
+    transform: scale(1.04);
+  }
+
+  @media (min-width: 1024px) {
+    .work__head {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 0.55fr);
+      align-items: end;
+    }
+    .work__title {
+      grid-column: 1 / -1;
+    }
+    .work__aside {
+      grid-column: 2;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .card__inner {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      height: min(calc(100svh - var(--nav-h) - 80px), 820px);
+      min-height: 560px;
+    }
+    .card__media {
+      aspect-ratio: auto;
+      height: 100%;
+    }
+    /* Breathing room = how long each card rests fully in view before the next slides over it */
+    .card {
+      margin-bottom: 26vh;
+    }
+  }
+  @media (max-width: 1023px) {
+    .card {
+      position: relative;
+      top: auto;
+    }
+    .card__inner {
+      display: flex;
+      flex-direction: column-reverse;
+    }
+  }
+</style>

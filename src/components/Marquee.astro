@@ -1,0 +1,103 @@
+---
+import { marquee } from '../data/content';
+---
+
+<section class="band" aria-label="Domains and teams" data-marquee-section>
+  <div class="band__row band__row--a" data-marquee="1">
+    <div class="band__track" data-marquee-track>
+      {
+        [0, 1].map((dup) => (
+          <div class="band__group" aria-hidden={dup === 1 ? 'true' : undefined}>
+            {marquee.domains.map((d) => (
+              <>
+                <span class="band__item">{d}</span>
+                <svg class="band__sep" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 5 H19 V19 H5 Z" />
+                  <circle cx="5" cy="5" r="2.2" />
+                  <circle cx="19" cy="5" r="2.2" />
+                  <circle cx="5" cy="19" r="2.2" />
+                  <circle cx="19" cy="19" r="2.2" />
+                </svg>
+              </>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+  <div class="band__row band__row--b" data-marquee="-1">
+    <div class="band__track" data-marquee-track>
+      {
+        [0, 1].map((dup) => (
+          <div class="band__group" aria-hidden={dup === 1 ? 'true' : undefined}>
+            {marquee.teams.map((t) => (
+              <>
+                <span class="band__item serif">{t}</span>
+                <span class="band__slash" aria-hidden="true">/</span>
+              </>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .band {
+    position: relative;
+    z-index: 1;
+    padding-block: clamp(24px, 4vw, 64px);
+    overflow: hidden;
+    border-block: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(19, 17, 27, 0), rgba(19, 17, 27, 0.6) 50%, rgba(19, 17, 27, 0));
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .band__row {
+    display: flex;
+    white-space: nowrap;
+  }
+  .band__track {
+    display: flex;
+    will-change: transform;
+  }
+  .band__group {
+    display: flex;
+    align-items: center;
+    flex: none;
+  }
+  .band__item {
+    padding-inline: clamp(16px, 2vw, 36px);
+    line-height: 1.05;
+  }
+  .band__row--a .band__item {
+    font-size: clamp(44px, 7.6vw, 132px);
+    font-weight: 300;
+    letter-spacing: -0.05em;
+  }
+  .band__row--b {
+    margin-top: clamp(4px, 1vw, 16px);
+  }
+  .band__row--b .band__item {
+    font-size: clamp(36px, 5.6vw, 96px);
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(241, 241, 241, 0.42);
+  }
+  .band__sep {
+    width: clamp(18px, 2vw, 32px);
+    height: clamp(18px, 2vw, 32px);
+    flex: none;
+    fill: var(--accent);
+    stroke: var(--accent);
+    stroke-width: 1.2;
+  }
+  .band__sep path {
+    fill: none;
+  }
+  .band__slash {
+    font-size: clamp(28px, 4vw, 64px);
+    font-weight: 200;
+    color: var(--accent);
+  }
+</style>

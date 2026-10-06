@@ -1,0 +1,124 @@
+---
+import { Image } from 'astro:assets';
+
+interface Persona {
+  name: string;
+  ages: string;
+  avatar: ImageMetadata;
+  practice: string;
+  community: string;
+  primary?: boolean;
+}
+interface Props {
+  items: Persona[];
+}
+const { items } = Astro.props;
+---
+
+<ul class="personas">
+  {
+    items.map((p) => (
+      <li class:list={['persona', { 'persona--primary': p.primary }]} data-reveal="fade-up">
+        <div class="persona__head">
+          <Image src={p.avatar} alt="" width={96} height={96} widths={[96, 192]} sizes="96px" class="persona__avatar" loading="lazy" />
+          <div>
+            {p.primary && <span class="persona__badge">Primary persona</span>}
+            <h4 class="persona__name">{p.name}</h4>
+            <p class="persona__ages">Ages {p.ages}</p>
+          </div>
+        </div>
+        <div class="persona__row">
+          <p class="kicker">Practice</p>
+          <p class="persona__text">{p.practice}</p>
+        </div>
+        <div class="persona__row">
+          <p class="kicker">Community</p>
+          <p class="persona__text persona__text--dim">{p.community}</p>
+        </div>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .personas {
+    display: grid;
+    gap: 16px;
+  }
+  .persona {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 24px;
+    padding: clamp(24px, 2.4vw, 36px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+  }
+  .persona--primary {
+    border-color: rgba(155, 140, 255, 0.5);
+    background:
+      radial-gradient(90% 70% at 50% 0%, rgba(111, 91, 255, 0.24), transparent 70%),
+      linear-gradient(180deg, #1a1630, #13111b);
+  }
+  .persona__head {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .persona__avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: none;
+    box-shadow: 0 0 0 1px var(--line-strong);
+  }
+  .persona--primary .persona__avatar {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+  .persona__badge {
+    display: inline-block;
+    margin-bottom: 6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: var(--accent-2);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .persona__name {
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .persona__ages {
+    font-size: 14px;
+    color: var(--fg-3);
+  }
+  .persona__row {
+    display: grid;
+    gap: 8px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .persona__text {
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--fg);
+  }
+  .persona__text--dim {
+    color: var(--fg-2);
+  }
+  @media (min-width: 1000px) {
+    .personas {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .persona--primary {
+      transform: translateY(-16px);
+    }
+  }
+</style>

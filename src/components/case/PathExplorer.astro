@@ -1,0 +1,337 @@
+---
+/**
+ * Before/after navigation explorer.
+ * Pick a task and both sidebars light up the path a merchant would take.
+ * Retrospective illustration: paths follow the usability-test tasks, labels follow the launched IA.
+ */
+type Nav = [string, string[]?][];
+type Step = [string, string];
+interface Task {
+  id: string;
+  label: string;
+  before: Step[];
+  after: Step[];
+  /** Direct completions out of 8 in the test: [old, new] */
+  direct: [number, number];
+  note?: string;
+}
+interface Props {
+  before: Nav;
+  after: Nav;
+  tasks: Task[];
+}
+const { before, after, tasks } = Astro.props;
+const key = (side: string, top: string, child?: string) => `${side}:${top}${child ? `>${child}` : ''}`;
+---
+
+<div class="px" data-px>
+  <div class="px__tasks" role="radiogroup" aria-label="Choose a task">
+    <p class="kicker px__tasks-label">Pick a task</p>
+    <div class="px__task-list">
+      {
+        tasks.map((t, i) => (
+          <button
+            type="button"
+            class:list={['px__task', { 'is-active': i === 0 }]}
+            role="radio"
+            aria-checked={i === 0 ? 'true' : 'false'}
+            data-px-task={JSON.stringify({ before: t.before, after: t.after, direct: t.direct, note: t.note || '' })}
+          >
+            <span class="px__task-num">{String(i + 1).padStart(2, '0')}</span>
+            {t.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  {
+    [
+      { side: 'before', title: 'Before', nav: before },
+      { side: 'after', title: 'After', nav: after },
+    ].map(({ side, title, nav }) => (
+      <div class:list={['px__panel', `px__panel--${side}`]} data-px-panel={side}>
+        <div class="px__head">
+          <span class="px__title">{title}</span>
+          <span class="px__count">
+            {nav.length} entries
+          </span>
+        </div>
+        <ol class="px__nav">
+          {nav.map(([top, children = []]) => (
+            <li class="px__item" data-px-key={key(side, top)}>
+              <span class="px__row">
+                <span class="px__step" data-px-step />
+                <span class="px__label">{top}</span>
+                {children.length > 0 && <span class="px__chev" aria-hidden="true" />}
+              </span>
+              {children.length > 0 && (
+                <ul class="px__children">
+                  {children.map((c) => (
+                    <li class="px__child" data-px-key={key(side, top, c)}>
+                      {c}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
+        <div class="px__score" aria-live="polite">
+          <span class="px__score-label">Direct completion in testing</span>
+          <span class="px__score-value">
+            <span data-px-score>–</span>/8
+          </span>
+          <span class="px__score-bar" aria-hidden="true">
+            <span data-px-bar />
+          </span>
+        </div>
+      </div>
+    ))
+  }
+
+  <p class="px__note" data-px-note aria-live="polite"></p>
+</div>
+
+<style>
+  .px {
+    display: grid;
+    gap: 16px;
+    padding: clamp(16px, 2.4vw, 32px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .px__tasks {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  .px__task-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .px__task-list::-webkit-scrollbar {
+    display: none;
+  }
+  .px__task {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex: none;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    font-size: 14px;
+    text-align: left;
+    color: var(--fg-2);
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  }
+  .px__task:hover {
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+  .px__task.is-active {
+    color: var(--fg);
+    border-color: rgba(155, 140, 255, 0.55);
+    background: rgba(111, 91, 255, 0.14);
+  }
+  .px__task-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-3);
+  }
+  .px__task.is-active .px__task-num {
+    color: var(--accent);
+  }
+
+  .px__panel {
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    background: #f7f6f9;
+    color: #2b2933;
+    overflow: hidden;
+  }
+  .px__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #e6e3ec;
+  }
+  .px__title {
+    font-size: 15px;
+    font-weight: 500;
+  }
+  .px__count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #67636f;
+  }
+  .px__panel--after .px__count {
+    color: #5340e0;
+  }
+  .px__nav {
+    flex: 1;
+    padding: 8px;
+  }
+  .px__item {
+    border-radius: 8px;
+    transition: color 0.35s ease, background-color 0.35s ease;
+  }
+  .px__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 8px;
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .px__label {
+    flex: 1;
+  }
+  .px__chev {
+    width: 6px;
+    height: 6px;
+    border-right: 1.2px solid currentColor;
+    border-bottom: 1.2px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+    opacity: 0.4;
+  }
+  .px__step {
+    display: none;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    flex: none;
+    border-radius: 50%;
+    background: #6f5bff;
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+  .px__children {
+    display: none;
+    padding: 2px 0 6px 34px;
+  }
+  .px__child {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: #6b6775;
+  }
+
+  /* Active path */
+  /* Dim the rest with colour (not opacity) so labels stay legible */
+  .px.has-task .px__item {
+    color: #6c6876;
+  }
+  .px.has-task .px__item .px__chev {
+    opacity: 0.25;
+  }
+  .px.has-task .px__item.is-path {
+    color: #2b2933;
+    background: #ece9ff;
+  }
+  .px__item.is-path .px__label {
+    font-weight: 500;
+    color: #3d2fd6;
+  }
+  .px__item.is-path .px__step {
+    display: grid;
+  }
+  .px__item.is-path .px__children {
+    display: block;
+  }
+  .px__child.is-target {
+    background: #6f5bff;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .px__score {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+    align-items: baseline;
+    padding: 14px 16px 16px;
+    border-top: 1px solid #e6e3ec;
+    background: #fff;
+  }
+  .px__score-label {
+    font-size: 12px;
+    color: #67636f;
+  }
+  .px__score-value {
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .px__score-bar {
+    grid-column: 1 / -1;
+    height: 4px;
+    border-radius: 2px;
+    background: #ebe8f0;
+    overflow: hidden;
+  }
+  .px__score-bar span {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    background: #b9b5c2;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 0.8s var(--ease-out);
+  }
+  .px__panel--after .px__score-bar span {
+    background: #6f5bff;
+  }
+
+  .px__note {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    color: var(--fg-3);
+  }
+  .px__note:empty {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .px {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .px__tasks,
+    .px__note {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 1100px) {
+    .px {
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+    .px__tasks {
+      grid-column: auto;
+      position: sticky;
+      top: calc(var(--nav-h) + 24px);
+    }
+    .px__task-list {
+      flex-direction: column;
+      overflow: visible;
+    }
+    .px__task {
+      flex: auto;
+    }
+    .px__note {
+      grid-column: 2 / -1;
+    }
+  }
+</style>

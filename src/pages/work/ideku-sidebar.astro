@@ -1,0 +1,1837 @@
+---
+import { getImage } from 'astro:assets';
+import Case from '../../layouts/Case.astro';
+import CaseHero from '../../components/case/CaseHero.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Figure from '../../components/case/Figure.astro';
+import PathExplorer from '../../components/case/PathExplorer.astro';
+import BeforeAfter from '../../components/case/BeforeAfter.astro';
+import NextProject from '../../components/case/NextProject.astro';
+import { Image } from 'astro:assets';
+import { works } from '../../data/content';
+
+import cover from '../../assets/case/ideku-sidebar/cover.png';
+import baPosOld from '../../assets/case/ideku-sidebar/ba-pos-old.png';
+import baPosNew from '../../assets/case/ideku-sidebar/ba-pos-new.png';
+import baIngredientOld from '../../assets/case/ideku-sidebar/ba-ingredient-old.png';
+import baIngredientNew from '../../assets/case/ideku-sidebar/ba-ingredient-new.png';
+import baStoreOld from '../../assets/case/ideku-sidebar/ba-store-old.png';
+import baAddressOld from '../../assets/case/ideku-sidebar/ba-address-old.png';
+import baStoreNew from '../../assets/case/ideku-sidebar/ba-store-new.png';
+import baStaffOld from '../../assets/case/ideku-sidebar/ba-staff-old.png';
+import baStaffNew from '../../assets/case/ideku-sidebar/ba-staff-new.png';
+import dashboardOld from '../../assets/case/ideku-sidebar/dashboard-old.png';
+import dashboardNew from '../../assets/case/ideku-sidebar/dashboard-new.png';
+import sidebarOld from '../../assets/case/ideku-sidebar/sidebar-old.png';
+
+const index = works.findIndex((w) => w.slug === 'ideku_sidebar');
+const next = works[(index + 1) % works.length];
+
+const chapters = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'problem', label: 'The problem' },
+  { id: 'discovery', label: 'Discovery' },
+  { id: 'architecture', label: 'Architecture' },
+  { id: 'validation', label: 'Validation' },
+  { id: 'ship', label: 'Ship' },
+  { id: 'reflection', label: 'Reflection' },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+const num = (id: string) => pad(chapters.findIndex((c) => c.id === id) + 1);
+const share = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
+const wideSizes = '(min-width: 1680px) 1584px, 94vw';
+
+/* ---------- Navigation data (from the before / launched sidebars) ---------- */
+const navBefore: [string, string[]?][] = [
+  ['Dashboard'],
+  ['Menu-V2', ['Custom Menu', 'Category', 'Item List', 'Modifier Master']],
+  ['Promotions', ['Promotions', 'Coupons']],
+  ['Integration', ['Payment', 'Accounting', 'Delivery', 'IDECONNECT']],
+  ['Order & Customer', ['Order', 'Customer']],
+  ['Master Data', ['Ingredients Category Master', 'Ingredients Master', 'Unit Master', 'Supplier Master', 'Product Composition']],
+  ['Inventory', ['Inventory Overview', 'Stock Card', 'Stock Opname', 'Item Adjustment', 'Stock Transfer']],
+  ['Production', ['Quick Production']],
+  ['Purchasing', ['Quick Purchase']],
+  ['Report'],
+  ['Analytic', ['Items', 'Modifier', 'Category', 'Order', 'Shift', 'Payment Reconciliation', 'Promotions']],
+  ['Employees', ['Shift', 'Credit']],
+  ['IDEKU POS', ['Feature', 'Printer', 'Theme']],
+  ['IDEFOOD', ['Appearance', 'Settings']],
+  ['IDEKIOSK', ['Appearance', 'Settings']],
+  ['IDEQUE', ['Appearance', 'Settings', 'QR Generator']],
+  ['Customer Display'],
+  ['Queue Number Display'],
+  ['KDS/EDS', ['General', 'Display', 'Ticket']],
+  ['Branch', ['Store', 'POS Devices']],
+  ['Table Management', ['Table Setup', 'QR Generator']],
+  ['Log History'],
+  ['Setting', ['Info', 'Order Status', 'Operational Hours', 'Scheduled Order', 'Receipt Template', 'Address', 'Additional Fee', 'Pricing Format', 'Tipping Feature']],
+  ['User & Permissions', ['User', 'User Role']],
+];
+const navAfter: [string, string[]?][] = [
+  ['Dashboard'],
+  ['Menu Management', ['Menu', 'Category', 'Item', 'Modifier']],
+  ['Discounts', ['Promotion', 'Coupon']],
+  ['Integrations', ['IDECONNECT', 'Delivery', 'Accounting']],
+  ['Payments'],
+  ['Orders & Customers', ['Order', 'Customer']],
+  ['Supply Chain', ['Ingredient', 'Purchasing', 'Inventory', 'Production']],
+  ['Reports', ['Sales Summary', 'Stock Movement']],
+  ['Analytics', ['Item', 'Modifier', 'Category', 'Order', 'Shift', 'Payment Reconciliation', 'Discount']],
+  ['Devices & Sites', ['POS', 'Mini POS', 'QR Ordering', 'Kiosk', 'KDS/EDS', 'Waiting List', 'Queue Number Display']],
+  ['Store Settings', ['Store Info', 'Table Management', 'Pricing & Fee', 'Tip', 'Receipt Template', 'Order Status']],
+  ['Staff Settings', ['Staff', 'Staff Shift', 'Credit']],
+  ['Merchant Settings', ['Business Info', 'Billing & Invoice']],
+  ['Log History'],
+];
+const explorerTasks = [
+  {
+    id: 'store',
+    label: 'Add a store and its address',
+    before: [['Branch', 'Store'], ['Setting', 'Address']] as [string, string][],
+    after: [['Store Settings', 'Store Info']] as [string, string][],
+    direct: [0, 8] as [number, number],
+    note: 'Before: the address lived under Setting, apart from the store itself — two entries for one job.',
+  },
+  {
+    id: 'staff',
+    label: 'Add a new staff member',
+    before: [['User & Permissions', 'User']] as [string, string][],
+    after: [['Staff Settings', 'Staff']] as [string, string][],
+    direct: [2, 8] as [number, number],
+    note: 'Before: an everyday HR task hidden behind a system-permissions label.',
+  },
+  {
+    id: 'pos',
+    label: 'Register a new POS device',
+    before: [['Branch', 'POS Devices']] as [string, string][],
+    after: [['Devices & Sites', 'POS']] as [string, string][],
+    direct: [3, 8] as [number, number],
+    note: 'Before: managing hardware meant first thinking of branch management.',
+  },
+  {
+    id: 'ingredient',
+    label: 'Add an ingredient',
+    before: [['Master Data', 'Ingredients Master']] as [string, string][],
+    after: [['Supply Chain', 'Ingredient']] as [string, string][],
+    direct: [1, 6] as [number, number],
+    note: 'After: ingredients sit with purchasing, inventory and production — the work they feed into.',
+  },
+  {
+    id: 'printer',
+    label: 'Connect a receipt printer',
+    before: [['IDEKU POS', 'Printer']] as [string, string][],
+    after: [['Devices & Sites', 'POS']] as [string, string][],
+    direct: [3, 6] as [number, number],
+    note: 'After: printer setup lives inside the POS device it prints for.',
+  },
+  {
+    id: 'fee',
+    label: 'Add a service charge',
+    before: [['Setting', 'Additional Fee']] as [string, string][],
+    after: [['Store Settings', 'Pricing & Fee']] as [string, string][],
+    direct: [5, 5] as [number, number],
+    note: 'Same direct completion — but faster on average for those who succeeded (25s → 19s).',
+  },
+  {
+    id: 'hours',
+    label: 'Set QR ordering hours',
+    before: [['Setting', 'Operational Hours']] as [string, string][],
+    after: [['Devices & Sites', 'QR Ordering']] as [string, string][],
+    direct: [1, 4] as [number, number],
+    note: 'Better, not solved: the scope of “operational hours” stayed unclear and was handed to the Core/CEX team.',
+  },
+  {
+    id: 'coupon',
+    label: 'Create a coupon',
+    before: [['Promotions', 'Coupons']] as [string, string][],
+    after: [['Discounts', 'Coupon']] as [string, string][],
+    direct: [8, 7] as [number, number],
+    note: 'A slight dip (8 → 7). Telling promotions from coupons became a follow-up for the Growth/CEX team.',
+  },
+];
+
+/* ---------- Problem: where each task lived in the old sidebar ----------
+   y = vertical centre (px) of the row in sidebar-old.png (482 × 8859), measured from the image. */
+const OLD_H = 8859;
+const oldRows: Record<string, { y: number; top?: boolean; n?: number }> = {
+  'Master Data': { y: 1974, top: true, n: 6 },
+  'Ingredients Master': { y: 2162 },
+  Branch: { y: 6820, top: true, n: 20 },
+  Store: { y: 6924 },
+  'POS Devices': { y: 7029 },
+  Setting: { y: 7548, top: true, n: 23 },
+  Address: { y: 8187 },
+  'User & Permissions': { y: 8599, top: true, n: 24 },
+  User: { y: 8703 },
+};
+const examples = [
+  {
+    task: 'Add a POS device',
+    groups: [['Branch', 'POS Devices']],
+    why: 'To manage hardware, you first had to think of branch management.',
+    where: 'Branch is group 20 of 24 — near the very bottom.',
+  },
+  {
+    task: 'Add a staff member',
+    groups: [['User & Permissions', 'User']],
+    why: 'A system-permissions label for an everyday HR task.',
+    where: 'User & Permissions is the last of 24 groups.',
+  },
+  {
+    task: 'Add an ingredient',
+    groups: [['Master Data', 'Ingredients Master']],
+    why: 'Internal terms like “Master” don’t read as ingredients.',
+    where: 'Ingredients sit inside “Master Data”, group 6 of 24.',
+  },
+  {
+    task: 'Add a store and its address',
+    groups: [
+      ['Branch', 'Store'],
+      ['Setting', 'Address'],
+    ],
+    why: 'One job, two places: the store under Branch, its address under Setting.',
+    where: 'Groups 20 and 23 of 24 — the panel walks you through both.',
+  },
+];
+const marks = examples.flatMap((ex, i) => {
+  let step = 0;
+  return ex.groups.flatMap((g, gi) =>
+    g.map((label) => ({ ex: i, group: gi, step: ++step, label, top: !!oldRows[label].top, y: oldRows[label].y })),
+  );
+});
+const pathData = examples.map((ex, i) => ({
+  groups: ex.groups.map((g) => g.map((l) => oldRows[l].y / OLD_H)),
+  caption: ex.where,
+}));
+
+/* ---------- Usability test results (8 participants × 13 tasks per version) ---------- */
+const tasks = [
+  { t: 'Add store & address', od: 0, or: 5, ot: 99, nd: 8, nr: 0, nt: 32 },
+  { t: 'Create menu', od: 7, or: 1, ot: 24, nd: 6, nr: 2, nt: 21 },
+  { t: 'Add ingredients', od: 1, or: 3, ot: 80, nd: 6, nr: 0, nt: 47 },
+  { t: 'New purchase', od: 6, or: 0, ot: 27, nd: 7, nr: 1, nt: 32 },
+  { t: 'Add staff', od: 2, or: 4, ot: 86, nd: 8, nr: 0, nt: 36 },
+  { t: 'Add POS device', od: 3, or: 3, ot: 45, nd: 8, nr: 0, nt: 30 },
+  { t: 'Add printer', od: 3, or: 3, ot: 42, nd: 6, nr: 1, nt: 26 },
+  { t: 'Set up tables', od: 7, or: 1, ot: 45, nd: 8, nr: 0, nt: 30 },
+  { t: 'View order', od: 4, or: 3, ot: 58, nd: 6, nr: 1, nt: 16 },
+  { t: 'Additional fee', od: 5, or: 1, ot: 25, nd: 5, nr: 1, nt: 19 },
+  { t: 'QR ordering: pay later', od: 1, or: 1, ot: 55, nd: 1, nr: 3, nt: 65 },
+  { t: 'Operational hours', od: 1, or: 6, ot: 51, nd: 4, nr: 1, nt: 24 },
+  { t: 'Create coupon', od: 8, or: 0, ot: 12, nd: 7, nr: 0, nt: 13 },
+];
+const totals = {
+  before: { direct: 48, detour: 31, fail: 25 },
+  after: { direct: 80, detour: 10, fail: 14 },
+};
+const pct = (n: number) => ((n / 104) * 100).toFixed(1);
+
+const competitors = [
+  { name: 'IDEKU — before', n: 24, tone: 'before' },
+  { name: 'Uber Eats Manager', n: 13 },
+  { name: 'foodpanda partner', n: 12 },
+  { name: 'Lightspeed', n: 11 },
+  { name: 'Square', n: 10 },
+  { name: 'IDEKU — launched', n: 14, tone: 'after' },
+];
+
+const renames = [
+  { from: 'Payment (inside Integration)', to: 'Payments — its own entry' },
+  { from: 'Inventory features, scattered', to: 'Consolidated into Supply Chain' },
+  { from: 'Materials & Recipes', to: 'Ingredients' },
+  { from: 'Device', to: 'Device & Site → Devices & Sites' },
+  { from: 'Store', to: 'Store Info' },
+];
+
+const handoffs = [
+  {
+    team: 'Growth / CEX',
+    title: 'Tell promotions and coupons apart',
+    text: 'Newcomers couldn’t distinguish the two from their labels alone — the difference only became clear after clicking into both.',
+    tone: '#e0773a',
+  },
+  {
+    team: 'Addon',
+    title: 'Surface supply-chain dependencies',
+    text: 'Adding an ingredient could require leaving the flow to create a unit or category first. The dependency wasn’t visible upfront.',
+    tone: '#5b3be0',
+  },
+  {
+    team: 'CEX',
+    title: 'Bring QR ordering together',
+    text: 'QR ordering settings were scattered. Participants expected all QR-related configuration to live in one context.',
+    tone: '#3a9bd6',
+  },
+  {
+    team: 'Core / CEX',
+    title: 'Clarify what operational hours control',
+    text: 'The label read like a store-wide setting, while its actual scope was unclear. People wanted a clearer scope — or control over it.',
+    tone: '#3f9b5a',
+  },
+];
+---
+
+<Case
+  title="IDEKU — Rebuilding Navigation Around How Merchants Work · Terry Wu"
+  description="Case study: restructuring a restaurant SaaS back office from 24 top-level entries to 14, organized by merchant tasks and validated in a comparative usability test."
+  image={share.src}
+  chapters={chapters}
+>
+  <CaseHero
+    client="IDEKU · Merchant back office"
+    title="Rebuilding Navigation Around How Merchants Work"
+    intro="A restaurant back office had grown one feature at a time until even long-time staff got lost. I turned a vague complaint into a testable problem — and rebuilt the navigation around the tasks merchants actually do."
+    index={index + 1}
+    total={works.length}
+    meta={[
+      { k: 'Role', v: 'Lead designer — research, IA, prototype, testing, UI foundation' },
+      { k: 'Team', v: '4 designers · 4 PMs · 4 engineers · 4 QA' },
+      { k: 'Timeline', v: '~2 months of design (excluding development)' },
+      { k: 'Launch', v: 'September 2026' },
+    ]}
+    cover={cover}
+    coverAlt="The redesigned IDEKU back office on a laptop and tablet, on a café counter"
+    coverFull
+    stats={[
+      { value: 14, prefix: '24 → ', label: 'Top-level navigation entries' },
+      { value: 77, prefix: '46 → ', suffix: '%', label: 'Direct task completion (internal test)' },
+      { value: 8, suffix: '/8', label: 'Participants preferred the new sidebar' },
+      { value: 13, label: 'Real restaurant tasks tested per version' },
+    ]}
+  />
+
+  <!-- 01 Overview -->
+  <Chapter id="overview" num={num('overview')} label="Overview">
+    <h2 class="c-h2" data-split-lines>Navigation should follow the <span class="serif">work</span>, not the org chart.</h2>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">The context</p>
+        <div class="prose">
+          <p>
+            IDEKU’s merchant back office covers menus, orders, customers, staff, supply chain, devices and store settings. The goal of the Sidebar Revamp was simple to say and hard to do: <strong>help merchants find the right entry faster</strong>, with categories and names that match how they think about their work.
+          </p>
+        </div>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">My role</p>
+        <div class="prose">
+          <p>
+            I was the lead designer. I led or ran the research, information architecture, prototype, interviews and usability testing, and defined the <strong>shared layout, components and visual direction</strong>. Three other designers built on that foundation, finalizing feature-level details with their PMs.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="shift" data-reveal="fade-up" aria-label="Shift: from navigation shaped by feature history to navigation shaped by merchant tasks">
+      <span class="shift__from">Shaped by feature history</span>
+      <span class="shift__arrow" aria-hidden="true"></span>
+      <span class="shift__to">Shaped by merchant tasks</span>
+    </div>
+  </Chapter>
+
+  <!-- 02 Problem -->
+  <Chapter id="problem" num={num('problem')} label="The problem">
+    <h2 class="c-h2" data-split-lines>It started with a <span class="serif">vague</span> complaint</h2>
+    <p class="lead" data-reveal="fade-up">
+      There was no research brief — just a customer complaint, relayed by leadership: the navigation is complicated and hard to use.
+    </p>
+    <div class="prose" data-reveal="fade-up">
+      <p>
+        The same problem showed up inside the company. Operations and engineering found it hard to use too — even people who had been here <strong>more than six months still opened the wrong entry</strong>. So this wasn’t just a learning curve for newcomers: the entries themselves were hard to predict and hard to remember.
+      </p>
+      <p>
+        The sidebar had grown with the product. Every new feature added an entry or was dropped into an existing group, without a task-based pass over the whole. Over time, it came to mirror <strong>internal systems and development history</strong> rather than how merchants work.
+      </p>
+    </div>
+
+    <div class="problem" data-paths={JSON.stringify(pathData)}>
+      <div class="paths">
+        <p class="kicker paths__hint">Pick a task — the old sidebar shows where it lived</p>
+        <ol class="paths__list" aria-label="Example tasks in the old sidebar">
+          {
+            examples.map((ex, i) => {
+              let step = 0;
+              return (
+                <li>
+                  <button
+                    type="button"
+                    class:list={['path', { 'is-active': i === 0 }]}
+                    aria-pressed={i === 0 ? 'true' : 'false'}
+                    aria-controls="old-sidebar"
+                    data-path={i}
+                  >
+                    <span class="kicker">{ex.task}</span>
+                    {ex.groups.map((g) => (
+                      <span class="crumb">
+                        {g.map((label, k) => (
+                          <>
+                            {k > 0 && <i aria-hidden="true">›</i>}
+                            <span>
+                              <b>{++step}</b>
+                              {label}
+                            </span>
+                          </>
+                        ))}
+                      </span>
+                    ))}
+                    <span class="paths__why">{ex.why}</span>
+                  </button>
+                </li>
+              );
+            })
+          }
+        </ol>
+      </div>
+      <figure class="strip" id="old-sidebar" data-pathstrip>
+        <div class="strip__frame">
+          <div class="strip__img" data-pathstrip-img>
+            <Image src={sidebarOld} alt="The full original sidebar, with 24 top-level groups" widths={[482]} sizes="260px" loading="lazy" />
+            {
+              marks.map((m) => (
+                <span
+                  class:list={['strip__mark', { 'strip__mark--top': m.top, 'is-on': m.ex === 0 }]}
+                  style={`top:${((m.y / OLD_H) * 100).toFixed(3)}%`}
+                  data-mark={m.ex}
+                  aria-hidden="true"
+                >
+                  <b>{m.step}</b>
+                </span>
+              ))
+            }
+          </div>
+        </div>
+        <figcaption class="strip__caption">
+          <span class="strip__caption-row"><span>Before</span><span>24 top-level groups</span></span>
+          <span class="strip__where" data-pathstrip-caption aria-live="polite">{examples[0].where}</span>
+        </figcaption>
+      </figure>
+    </div>
+
+    <aside class="callout" data-reveal="fade-up">
+      <p class="kicker">Problem statement</p>
+      <p class="callout__statement">
+        Merchants couldn’t tell, <em>before they started</em>, which entry led to the task they wanted to finish.
+      </p>
+    </aside>
+  </Chapter>
+
+  <!-- 03 Discovery -->
+  <Chapter id="discovery" num={num('discovery')} label="Discovery">
+    <h2 class="c-h2" data-split-lines>Understand the whole system <span class="serif">first</span></h2>
+    <div class="cards cards--3">
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">01</span>
+        <h3 class="c-h3">Every feature, hands-on</h3>
+        <p>I operated every feature myself to understand what it does, where it lives and how it relates to the rest — thinking about the whole back office, not one module.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">02</span>
+        <h3 class="c-h3">Usage data, read with care</h3>
+        <p>Metabase and Google Analytics showed feature usage and task frequency — but frequent use can also mean getting lost, trial and error, or repeated searching.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">03</span>
+        <h3 class="c-h3">Operations know-how</h3>
+        <p>Combining the operations team’s knowledge of merchants’ daily work, I formed mental-model hypotheses to check later in testing.</p>
+      </div>
+    </div>
+    <blockquote data-reveal="fade-up">
+      <p class="pull">Data gives behavioral clues. Operations adds task context. But a new IA still has to be <em>proven in use</em>.</p>
+    </blockquote>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">How others draw the line</h3>
+      <p class="prose" data-reveal="fade-up">
+        I studied Square, Lightspeed, Uber Eats and foodpanda. Their back offices kept top-level navigation to roughly a dozen entries — <strong>a reference for complexity, not a number to copy</strong>. IDEKU’s categories still had to come from its own features, merchant tasks and test results.
+      </p>
+    </div>
+    <figure class="bars" data-inview>
+      <figcaption class="bars__title">
+        <span class="kicker">Top-level navigation entries</span>
+        <span class="bars__note">As observed during research in 2026 — products may have changed since</span>
+      </figcaption>
+      <ul class="bars__list">
+        {
+          competitors.map((c, i) => (
+            <li class:list={['bars__row', c.tone && `bars__row--${c.tone}`]} style={`--v:${c.n / 24};--i:${i}`}>
+              <span class="bars__name">{c.name}</span>
+              <span class="bars__track">
+                <span class="bars__fill" />
+              </span>
+              <span class="bars__n">{c.n}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </figure>
+    <p class="prose" data-reveal="fade-up">
+      One more observation shaped the proposal: <strong>foodpanda and Uber Eats keep store switching in the sidebar</strong>, so merchants stay in one store’s context while they work. I carried that idea into my first proposal — more on how it played out in the next chapter.
+    </p>
+  </Chapter>
+
+  <!-- 04 Architecture -->
+  <Chapter id="architecture" num={num('architecture')} label="Architecture">
+    <h2 class="c-h2" data-split-lines>From 24 entries to <span class="serif">fourteen</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      I drafted an initial architecture, then worked through it with <strong>each feature’s PM</strong> — where every feature belongs, what each group is called, and how the flows connect.
+    </p>
+    <div class="cards cards--3">
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">01</span>
+        <h3 class="c-h3">Group related tasks</h3>
+        <p>Ingredients, purchasing, inventory and production now live together under Supply Chain, so their relationship is visible in the navigation itself.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">02</span>
+        <h3 class="c-h3">Name it like merchants do</h3>
+        <p>Ingredients, Store Info, and explicit Staff and Devices groups — so nobody has to decode internal terms before they start.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">03</span>
+        <h3 class="c-h3">Fewer first-level decisions</h3>
+        <p>Scattered entries were reorganized, not just trimmed. Entry count is a structural signal — whether it’s easier to find still had to be tested.</p>
+      </div>
+    </div>
+
+    <div class="stack">
+      <p class="kicker" data-reveal="fade-up">Try it</p>
+      <h3 class="c-h3" data-reveal="fade-up">Where would you click?</h3>
+    </div>
+    <div class="bleed">
+      <PathExplorer before={navBefore} after={navAfter} tasks={explorerTasks} />
+    </div>
+    <p class="fineprint" data-reveal="fade-up">
+      Retrospective illustration. Paths follow the usability-test tasks; labels follow the launched 14-entry navigation. Test results were measured on the 12-entry test version.
+    </p>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">The trade-off: keeping merchants in one store</h3>
+      <p class="prose" data-reveal="fade-up">
+        Inspired by foodpanda and Uber Eats, I wanted a <strong>store filter in the sidebar</strong>, so merchants wouldn’t have to re-select their store in every feature. It required extra engineering, and the PMs had a timeline to protect — so it didn’t make this release.
+      </p>
+    </div>
+    <div class="tradeoff" data-reveal="fade-up">
+      <div class="tradeoff__col">
+        <p class="kicker">Proposed</p>
+        <h4>A global store filter</h4>
+        <p>Pick a store once in the sidebar; every feature stays in that store’s context.</p>
+        <span class="tradeoff__tag tradeoff__tag--off">Not in this release</span>
+      </div>
+      <span class="tradeoff__arrow" aria-hidden="true"></span>
+      <div class="tradeoff__col tradeoff__col--on">
+        <p class="kicker">Shipped</p>
+        <h4>Store context inside each feature</h4>
+        <p>Features reuse the store you’re already working in — adding a POS records it to the store selected on that page, instead of asking again.</p>
+        <span class="tradeoff__tag">Smaller scope, part of the benefit</span>
+      </div>
+    </div>
+  </Chapter>
+
+  <!-- 05 Validation -->
+  <Chapter id="validation" num={num('validation')} label="Validation">
+    <h2 class="c-h2" data-split-lines>Testing habits <span class="serif">and</span> first impressions</h2>
+    <p class="lead" data-reveal="fade-up">
+      A comparative usability test, designed to check two things at once: whether experienced users would adapt, and whether newcomers would understand it on first sight.
+    </p>
+    <div class="setup">
+      <div class="setup__item" data-reveal="fade-up">
+        <span class="setup__big">4 + 4</span>
+        <p><strong>Participants:</strong> 8 internal colleagues outside the development team — 4 familiar with IDEKU, 4 new to it.</p>
+      </div>
+      <div class="setup__item" data-reveal="fade-up">
+        <span class="setup__big">2 × 13</span>
+        <p><strong>Tasks:</strong> everyone ran 13 restaurant-owner tasks on both sidebars, thinking aloud on a working prototype.</p>
+      </div>
+      <div class="setup__item" data-reveal="fade-up">
+        <span class="setup__big">50 / 50</span>
+        <p><strong>Counterbalanced:</strong> half started with the old sidebar, half with the new, to reduce order and learning effects.</p>
+      </div>
+      <div class="setup__item" data-reveal="fade-up">
+        <span class="setup__big">104</span>
+        <p><strong>Attempts per version:</strong> 8 participants × 13 tasks — repeated attempts, not 104 different people.</p>
+      </div>
+    </div>
+    <blockquote class="scenario" data-reveal="fade-up">
+      <p class="kicker">The opening story, read to every participant</p>
+      <p>
+        “Imagine you’ve just opened a small mala xiang guo restaurant in a busy neighborhood… you’re now the one running the whole back office — managing the menu, tracking ingredients, setting up devices, hiring staff, running promotions, and checking sales every day.”
+      </p>
+    </blockquote>
+
+    <ul class="measures">
+      <li data-reveal="fade-up">
+        <svg viewBox="0 0 120 24" aria-hidden="true"><path d="M4 12 H104" /><circle cx="110" cy="12" r="8" class="m-ok" /></svg>
+        <h3>Direct completion</h3>
+        <p>Reached the correct entry on the first attempt, without clicking into a wrong one.</p>
+      </li>
+      <li data-reveal="fade-up">
+        <svg viewBox="0 0 120 24" aria-hidden="true"><path d="M4 12 L34 18 L62 6 L104 12" /><circle cx="34" cy="18" r="3" /><circle cx="62" cy="6" r="3" /><circle cx="110" cy="12" r="8" class="m-detour" /></svg>
+        <h3>Detour completion</h3>
+        <p>Got there eventually, after at least one wrong entry.</p>
+      </li>
+      <li data-reveal="fade-up">
+        <svg viewBox="0 0 120 24" aria-hidden="true"><path d="M4 12 H104" stroke-dasharray="4 5" /><circle cx="110" cy="12" r="8" class="m-fail" /></svg>
+        <h3>Fail</h3>
+        <p>Didn’t find the path within the task window, or gave up.</p>
+      </li>
+    </ul>
+    <p class="fineprint" data-reveal="fade-up">
+      Also recorded: completion time (successful attempts only), a 1–10 ease-of-use rating per version (not SUS), and an overall preference.
+    </p>
+
+    <!-- Results -->
+    <div class="headline" data-reveal="fade-up">
+      <span class="headline__num"><span class="headline__from">46%</span><span class="headline__arrow" aria-label="to">→</span>77%</span>
+      <p>
+        <strong>Direct completion</strong> rose from 48 to 80 of 104 attempts — about <strong>+31 percentage points</strong>. Including detours, overall completion went from 76% to 87%, and failures dropped from 25 to 14.
+      </p>
+    </div>
+
+    <figure class="stack-bars" data-inview>
+      <figcaption class="stack-bars__legend">
+        <span class="lg lg--direct">Direct</span>
+        <span class="lg lg--detour">Detour</span>
+        <span class="lg lg--fail">Fail</span>
+        <span class="stack-bars__of">of 104 attempts</span>
+      </figcaption>
+      {
+        (['before', 'after'] as const).map((side) => (
+          <div class="sb-row">
+            <span class="sb-row__name">{side === 'before' ? 'Old sidebar' : 'New sidebar'}</span>
+            <span class="sb-row__bar">
+              <span class="sb sb--direct" style={`--w:${pct(totals[side].direct)}%`}>
+                {totals[side].direct}
+              </span>
+              <span class="sb sb--detour" style={`--w:${pct(totals[side].detour)}%`}>
+                {totals[side].detour}
+              </span>
+              <span class="sb sb--fail" style={`--w:${pct(totals[side].fail)}%`}>
+                {totals[side].fail}
+              </span>
+            </span>
+          </div>
+        ))
+      }
+    </figure>
+
+    <div class="ratings">
+      <div class="rating" data-inview>
+        <p class="kicker">Familiar users · ease of use</p>
+        <div class="rating__scale">
+          <span class="rating__dot rating__dot--old" style="--x:0.53"><b>5.3</b></span>
+          <span class="rating__dot rating__dot--new" style="--x:0.74"><b>7.4</b></span>
+          <span class="rating__line" style="--a:0.53;--b:0.74"></span>
+        </div>
+        <p class="rating__obs">“Store Setup” read like a pre-opening checklist — easier to navigate intuitively.</p>
+      </div>
+      <div class="rating" data-inview>
+        <p class="kicker">New users · ease of use</p>
+        <div class="rating__scale">
+          <span class="rating__dot rating__dot--old" style="--x:0.44"><b>4.4</b></span>
+          <span class="rating__dot rating__dot--new" style="--x:0.8"><b>8.0</b></span>
+          <span class="rating__line" style="--a:0.44;--b:0.8"></span>
+        </div>
+        <p class="rating__obs">On the old sidebar, some said they’d rather skip a setting entirely than keep searching. On the new one, they stopped guessing and started completing.</p>
+      </div>
+    </div>
+    <p class="prefer" data-reveal="fade-up"><span>8 / 8</span> participants preferred the new sidebar.</p>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Task by task</h3>
+      <p class="prose" data-reveal="fade-up">
+        The biggest gains came where entries had been hardest to predict — <strong>store &amp; address went from 0/8 to 8/8</strong> direct completions; staff from 2/8 and POS from 3/8 to 8/8.
+      </p>
+    </div>
+    <figure class="dumb" data-inview>
+      <figcaption class="dumb__legend">
+        <span class="lg lg--old">Old</span>
+        <span class="lg lg--new">New</span>
+        <span class="dumb__axis-note">Direct completions out of 8<span class="dumb__time-note"> · avg. time of successful attempts</span></span>
+      </figcaption>
+      <div class="dumb__axis" aria-hidden="true">
+        <span></span>
+        <span class="dumb__ticks">{Array.from({ length: 9 }, (_, i) => <i style={`--x:${i / 8}`}>{i}</i>)}</span>
+        <span></span>
+        <span></span>
+      </div>
+      <ul class="dumb__rows">
+        {
+          tasks.map((r, i) => {
+            const dir = r.nd > r.od ? 'up' : r.nd < r.od ? 'down' : 'flat';
+            return (
+              <li class:list={['dumb__row', `dumb__row--${dir}`]} style={`--i:${i}`}>
+                <span class="dumb__name">{r.t}</span>
+                <span class="dumb__track">
+                  <span class="dumb__seg" style={`--a:${Math.min(r.od, r.nd) / 8};--b:${Math.max(r.od, r.nd) / 8}`} />
+                  <span class="dumb__dot dumb__dot--old" style={`--x:${r.od / 8}`} title={`Old: ${r.od}/8`} />
+                  <span class="dumb__dot dumb__dot--new" style={`--x:${r.nd / 8}`} title={`New: ${r.nd}/8`} />
+                </span>
+                <span class="dumb__vals">
+                  {r.od} → <b>{r.nd}</b>
+                </span>
+                <span class="dumb__time">
+                  {r.ot}s → {r.nt}s
+                </span>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </figure>
+
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">Not everything got better</p>
+        <ol class="nlist">
+          <li><span>01</span><span><strong>Create menu</strong> — fewer direct completions and more detours, though all 8 still finished.</span></li>
+          <li><span>02</span><span><strong>New purchase</strong> — more successes, but a longer average time.</span></li>
+          <li><span>03</span><span><strong>QR ordering: pay later</strong> — direct completion stayed at 1/8 and took longer.</span></li>
+          <li><span>04</span><span><strong>Operational hours</strong> — more direct completions, but total successes fell from 7 to 5.</span></li>
+          <li><span>05</span><span><strong>Create coupon</strong> — 8/8 to 7/8, slightly slower.</span></li>
+        </ol>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">What the results support</p>
+        <div class="prose">
+          <p>
+            In this internal comparison, people found the right entry directly far more often. Reorganizing navigation improves how findable an entry is — but <strong>categories and names can’t fix every problem inside a feature’s own flow</strong>.
+          </p>
+          <p>
+            Participants were colleagues, not merchants, and no significance testing was run. Average times compare different sets of successful attempts, so I treat them as a secondary signal.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Chapter>
+
+  <!-- 06 Ship -->
+  <Chapter id="ship" num={num('ship')} label="Ship">
+    <h2 class="c-h2" data-split-lines>Iterate, hand off, <span class="serif">launch</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      Findings went straight back into the navigation. Naming fixes shipped with the new sidebar; problems beyond navigation went to the teams that own them.
+    </p>
+    <ul class="renames" data-reveal="fade-up">
+      {
+        renames.map((r) => (
+          <li>
+            <span class="renames__from">{r.from}</span>
+            <span class="renames__arrow" aria-hidden="true" />
+            <span class="renames__to">{r.to}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="fineprint" data-reveal="fade-up">
+      Names kept evolving after the study — the proposed “Marketing” group shipped as Discounts, and Store Setup as Store Settings.
+    </p>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Four everyday tasks, before and after</h3>
+      <p class="prose" data-reveal="fade-up">
+        The same tasks from chapter {num('problem')}, in the old back office and the launched one. Look at the left edge: the sidebar tells you where you are.
+      </p>
+    </div>
+    <div class="bleed" data-reveal="fade-up">
+      <BeforeAfter
+        items={[
+          {
+            id: 'pos',
+            label: 'Add a POS device',
+            before: [{ src: baPosOld, alt: 'Old back office: POS devices under Branch', crumb: ['Branch', 'POS Devices'] }],
+            after: { src: baPosNew, alt: 'Launched back office: POS under Devices & Sites', crumb: ['Devices & Sites', 'POS'] },
+            stat: 'Direct completion in testing — 3/8 → 8/8',
+          },
+          {
+            id: 'ingredient',
+            label: 'Add an ingredient',
+            before: [{ src: baIngredientOld, alt: 'Old back office: Ingredients Category Master under Master Data', crumb: ['Master Data', 'Ingredients Category Master'] }],
+            after: { src: baIngredientNew, alt: 'Launched back office: Ingredient under Supply Chain', crumb: ['Supply Chain', 'Ingredient'] },
+            stat: 'Direct completion in testing — 1/8 → 6/8',
+          },
+          {
+            id: 'store',
+            label: 'Add a store & address',
+            before: [
+              { src: baStoreOld, alt: 'Old back office: store details under Branch', crumb: ['Branch', 'Store'] },
+              { src: baAddressOld, alt: 'Old back office: the address, separately under Setting', crumb: ['Setting', 'Address'] },
+            ],
+            after: { src: baStoreNew, alt: 'Launched back office: store details and address together under Store Settings', crumb: ['Store Settings', 'Store Info'] },
+            stat: 'Direct completion in testing — 0/8 → 8/8',
+          },
+          {
+            id: 'staff',
+            label: 'Add a staff member',
+            before: [{ src: baStaffOld, alt: 'Old back office: staff managed as users under User & Permissions', crumb: ['User & Permissions', 'User'] }],
+            after: { src: baStaffNew, alt: 'Launched back office: Staff under Staff Settings', crumb: ['Staff Settings', 'Staff'] },
+            stat: 'Direct completion in testing — 2/8 → 8/8',
+          },
+        ]}
+      />
+    </div>
+    <p class="fineprint" data-reveal="fade-up">Personal names and emails in the old screenshots are blurred.</p>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Beyond the sidebar</h3>
+      <p class="prose" data-reveal="fade-up">
+        Some friction lived inside features, not in the navigation. The study mapped each one to the team that owns it — follow-up directions, not finished work.
+      </p>
+    </div>
+    <ul class="handoffs">
+      {
+        handoffs.map((h) => (
+          <li style={`--tone:${h.tone}`} data-reveal="fade-up">
+            <span class="handoffs__team">{h.team}</span>
+            <h4>{h.title}</h4>
+            <p>{h.text}</p>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">A foundation others could build on</h3>
+      <p class="prose" data-reveal="fade-up">
+        I defined the shared layout, components and visual direction first. The three other designers then worked with their feature PMs on the details — for example, whether creating something should open a new page or a modal. That split let me guard consistency across features while the people closest to each module refined it.
+      </p>
+    </div>
+    <div class="split bleed">
+      <Figure src={dashboardOld} alt="The previous IDEKU dashboard with the old sidebar" caption="Before" sizes="(min-width: 900px) 46vw, 92vw" widths={[600, 1000, 1410]} zoom />
+      <Figure src={dashboardNew} alt="The redesigned IDEKU dashboard with the new sidebar" caption="After — new sidebar, color system and type scale" sizes="(min-width: 900px) 46vw, 92vw" widths={[600, 1000, 1600, 2880]} zoom />
+    </div>
+    <p class="fineprint" data-reveal="fade-up">
+      On the dashboard itself, the update covered the sidebar, color system and type scale — the main content layout wasn’t redesigned.
+    </p>
+
+    <ol class="timeline" data-inview>
+      <li><span class="timeline__when">Spring 2026</span><span class="timeline__what">Discovery, IA and prototype with feature PMs</span></li>
+      <li><span class="timeline__when">Jun 1 – 22</span><span class="timeline__what">Comparative usability testing</span></li>
+      <li><span class="timeline__when">Jun 26 – Jul 2</span><span class="timeline__what">Design iteration from findings</span></li>
+      <li><span class="timeline__when">Jul 6</span><span class="timeline__what">Development kickoff</span></li>
+      <li class="is-launch"><span class="timeline__when">Sep 2026</span><span class="timeline__what">Launched</span></li>
+    </ol>
+  </Chapter>
+
+  <!-- 07 Reflection -->
+  <Chapter id="reflection" num={num('reflection')} label="Reflection">
+    <h2 class="c-h2" data-split-lines>Navigation is never <span class="serif">done</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      The new sidebar launched in September 2026, and leadership was happy with the result. I don’t have access to post-launch analytics, so the numbers here come from the internal test — not production.
+    </p>
+    <div class="prose" data-reveal="fade-up">
+      <p>
+        The project taught me that navigation keeps absorbing new features. A clean first version is only the start: if every team adds its own categories again, the original problem comes back. If I continue this work, I’d propose turning a few questions into shared rules:
+      </p>
+    </div>
+    <ol class="nlist" data-reveal="fade-up">
+      <li><span>01</span><span>When does a feature deserve a new <strong>top-level entry</strong>?</span></li>
+      <li><span>02</span><span>Does the name use <strong>words merchants actually use</strong>?</span></li>
+      <li><span>03</span><span>Can it fit an <strong>existing, sensible task group</strong> instead?</span></li>
+      <li><span>04</span><span>Who reviews <strong>cross-module navigation changes</strong> together?</span></li>
+      <li><span>05</span><span>How do we keep measuring <strong>wrong turns, abandonment and completion</strong> with real merchants?</span></li>
+    </ol>
+    <p class="fineprint" data-reveal="fade-up">These are recommendations, not an established process.</p>
+
+    <blockquote class="testimonial" data-reveal="fade-up">
+      <p class="pull">My biggest contribution: turning a vague complaint into <em>a product problem we could test</em>.</p>
+      <p class="prose">
+        Understand the whole system, propose a structure, align with every feature team, validate it with a comparative test — and ship within the timeline, with clear owners for what comes next.
+      </p>
+    </blockquote>
+  </Chapter>
+
+  <NextProject client={next.client} title={next.title} image={next.image} href={next.href} accent={next.accent} />
+</Case>
+
+<style>
+  .fineprint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    color: var(--fg-3);
+    max-width: 90ch;
+  }
+
+  /* ---------- Problem: task picker + old sidebar with highlighted path ---------- */
+  .problem {
+    display: grid;
+    gap: clamp(24px, 4vw, 64px);
+    align-items: start;
+  }
+  .paths {
+    display: grid;
+    gap: 14px;
+  }
+  .paths__list {
+    display: grid;
+    gap: 12px;
+  }
+  .path {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+    padding: clamp(18px, 2vw, 28px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+    text-align: left;
+    transition: border-color 0.4s ease, background-color 0.4s ease, opacity 0.4s ease;
+  }
+  .path:not(.is-active) {
+    opacity: 0.72;
+  }
+  .path:hover {
+    opacity: 1;
+    border-color: var(--line-strong);
+  }
+  .path.is-active {
+    opacity: 1;
+    border-color: rgba(229, 72, 77, 0.55);
+    background:
+      radial-gradient(80% 120% at 0% 0%, rgba(229, 72, 77, 0.14), transparent 60%),
+      linear-gradient(180deg, rgba(26, 24, 35, 0.95), rgba(19, 17, 27, 0.7));
+  }
+  .crumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: clamp(18px, 1.5vw, 23px);
+    letter-spacing: -0.02em;
+  }
+  .crumb span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px 4px 6px;
+    border-radius: 999px;
+    border: 1px dashed rgba(229, 72, 77, 0.55);
+    color: #ffb4b6;
+  }
+  .crumb b {
+    display: inline-grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(229, 72, 77, 0.2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: #ffb4b6;
+  }
+  .path.is-active .crumb b {
+    background: #e5484d;
+    color: #fff;
+  }
+  .crumb i {
+    font-style: normal;
+    color: var(--fg-3);
+  }
+  .paths__why {
+    color: var(--fg-2);
+    font-size: 15px;
+  }
+
+  .strip {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    justify-self: center;
+    width: min(100%, 260px);
+  }
+  .strip__frame {
+    position: relative;
+    height: min(64svh, 600px);
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 0 0 1px var(--line-strong), 0 30px 80px rgba(0, 0, 0, 0.45);
+  }
+  .strip__frame::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: 48px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
+    pointer-events: none;
+  }
+  .strip__img {
+    position: relative;
+    will-change: transform;
+  }
+  .strip__img :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .strip__mark {
+    position: absolute;
+    left: 3%;
+    right: 3%;
+    height: 0.95%;
+    transform: translateY(-50%) scaleX(0.96);
+    border-radius: 8px;
+    border: 1.5px solid #e5484d;
+    background: rgba(229, 72, 77, 0.1);
+    opacity: 0;
+    transition: opacity 0.4s ease, transform 0.6s var(--ease-out);
+  }
+  .strip__mark--top {
+    background: rgba(229, 72, 77, 0.06);
+    border-style: dashed;
+  }
+  .strip__mark.is-on {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+  .strip__mark b {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #e5484d;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: #fff;
+  }
+  .strip__caption {
+    display: grid;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+  .strip__caption-row {
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .strip__caption-row span:last-child {
+    color: #ff8a8d;
+  }
+  .strip__where {
+    color: var(--fg-2);
+  }
+  @media (min-width: 900px) {
+    .problem {
+      grid-template-columns: minmax(0, 1fr) 260px;
+    }
+    /* Room for the last card to reach the middle while the sidebar is still pinned */
+    .paths {
+      padding-bottom: min(22vh, 220px);
+    }
+    .strip {
+      position: sticky;
+      top: calc(var(--nav-h) + 32px);
+    }
+  }
+  /* Phones: keep the sidebar in view above the task list */
+  @media (max-width: 899px) {
+    .strip {
+      order: -1;
+      position: sticky;
+      top: 10px;
+      z-index: 3;
+      width: 100%;
+      grid-template-columns: 150px minmax(0, 1fr);
+      align-items: end;
+      gap: 14px;
+      padding: 10px;
+      border-radius: 20px;
+      background: rgba(8, 5, 15, 0.92);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
+    .strip__frame {
+      height: 34svh;
+      border-radius: 12px;
+    }
+  }
+  .callout__statement {
+    font-size: clamp(26px, 2.8vw, 46px);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+    max-width: 26ch;
+  }
+  .callout__statement em {
+    font-family: var(--font-serif);
+    color: var(--accent);
+  }
+
+  /* ---------- Competitor bars ---------- */
+  .bars {
+    display: grid;
+    gap: 20px;
+    margin: 0;
+    padding: clamp(22px, 3vw, 44px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .bars__title {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 24px;
+  }
+  .bars__note {
+    font-size: 13px;
+    color: var(--fg-3);
+  }
+  .bars__list {
+    display: grid;
+    gap: 12px;
+  }
+  .bars__row {
+    display: grid;
+    grid-template-columns: minmax(110px, 0.32fr) minmax(0, 1fr) 36px;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+    color: var(--fg-2);
+  }
+  .bars__track {
+    height: 10px;
+    border-radius: 5px;
+    background: rgba(241, 241, 241, 0.05);
+    overflow: hidden;
+  }
+  .bars__fill {
+    display: block;
+    height: 100%;
+    width: calc(var(--v) * 100%);
+    border-radius: inherit;
+    background: rgba(241, 241, 241, 0.32);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 1.1s var(--ease-out) calc(var(--i) * 0.08s);
+  }
+  .bars.is-on .bars__fill {
+    transform: none;
+  }
+  .bars__n {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    color: var(--fg);
+  }
+  .bars__row--before .bars__fill {
+    background: #e5484d;
+  }
+  .bars__row--before .bars__name,
+  .bars__row--before .bars__n {
+    color: #ff9a9d;
+  }
+  .bars__row--after .bars__fill {
+    background: var(--accent);
+  }
+  .bars__row--after .bars__name,
+  .bars__row--after .bars__n {
+    color: var(--accent);
+  }
+
+  /* ---------- Trade-off ---------- */
+  .tradeoff {
+    display: grid;
+    gap: 16px;
+    align-items: stretch;
+  }
+  .tradeoff__col {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: clamp(22px, 2.4vw, 34px);
+    border-radius: var(--radius);
+    border: 1px dashed var(--line-strong);
+    color: var(--fg-2);
+  }
+  .tradeoff__col h4 {
+    font-size: clamp(21px, 1.8vw, 28px);
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    color: var(--fg-2);
+  }
+  .tradeoff__col--on {
+    border: 1px solid rgba(155, 140, 255, 0.45);
+    background: rgba(111, 91, 255, 0.08);
+    color: var(--fg);
+  }
+  .tradeoff__col--on h4 {
+    color: var(--fg);
+  }
+  .tradeoff__tag {
+    justify-self: start;
+    margin-top: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--accent-2);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .tradeoff__tag--off {
+    background: rgba(241, 241, 241, 0.08);
+    color: var(--fg-3);
+  }
+  .tradeoff__arrow {
+    position: relative;
+    align-self: center;
+    justify-self: center;
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(var(--line-strong), var(--accent));
+  }
+  @media (min-width: 900px) {
+    .tradeoff {
+      grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
+    }
+    .tradeoff__arrow {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--line-strong), var(--accent));
+    }
+  }
+
+  /* ---------- Validation ---------- */
+  .setup {
+    display: grid;
+    gap: 14px;
+  }
+  .setup__item {
+    display: grid;
+    gap: 10px;
+    padding: clamp(20px, 2.2vw, 30px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+    color: var(--fg-2);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .setup__item strong {
+    font-weight: 400;
+    color: var(--fg);
+  }
+  .setup__big {
+    font-size: clamp(36px, 3.4vw, 56px);
+    font-weight: 300;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--fg);
+  }
+  @media (min-width: 700px) {
+    .setup {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1200px) {
+    .setup {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .scenario {
+    display: grid;
+    gap: 14px;
+    padding-left: clamp(20px, 3vw, 40px);
+    border-left: 1px solid var(--accent);
+  }
+  .scenario p:last-child {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(22px, 2vw, 32px);
+    line-height: 1.25;
+    max-width: 40ch;
+  }
+
+  .measures {
+    display: grid;
+    gap: 14px;
+  }
+  .measures li {
+    display: grid;
+    gap: 10px;
+    padding: clamp(20px, 2.2vw, 30px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+  }
+  .measures svg {
+    width: 140px;
+    height: 28px;
+    fill: var(--fg);
+    stroke: var(--fg-2);
+    stroke-width: 1.2;
+    overflow: visible;
+  }
+  .measures svg path {
+    fill: none;
+  }
+  .measures .m-ok {
+    fill: #4ade80;
+    stroke: none;
+  }
+  .measures .m-detour {
+    fill: #f6c27a;
+    stroke: none;
+  }
+  .measures .m-fail {
+    fill: #e5484d;
+    stroke: none;
+  }
+  .measures h3 {
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  .measures p {
+    color: var(--fg-2);
+    font-size: 15px;
+  }
+  @media (min-width: 900px) {
+    .measures {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .headline {
+    display: grid;
+    gap: 18px;
+    align-items: end;
+    padding-top: clamp(24px, 3vw, 40px);
+    border-top: 1px solid var(--line);
+  }
+  .headline__num {
+    display: flex;
+    align-items: baseline;
+    gap: 0.12em;
+    font-size: clamp(64px, 9vw, 160px);
+    font-weight: 300;
+    letter-spacing: -0.06em;
+    line-height: 0.85;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .headline__from {
+    font-size: 0.5em;
+    color: var(--fg-3);
+  }
+  .headline__arrow {
+    font-size: 0.35em;
+    color: var(--accent);
+    align-self: center;
+  }
+  .headline p {
+    color: var(--fg-2);
+    max-width: 46ch;
+  }
+  .headline strong {
+    font-weight: 400;
+    color: var(--fg);
+  }
+  @media (min-width: 1024px) {
+    .headline {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: clamp(32px, 4vw, 64px);
+    }
+  }
+
+  .lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--fg-2);
+  }
+  .lg::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    background: currentColor;
+  }
+  .lg--direct::before {
+    background: #4ade80;
+  }
+  .lg--detour::before {
+    background: #f6c27a;
+  }
+  .lg--fail::before {
+    background: #e5484d;
+  }
+  .lg--old::before {
+    border-radius: 50%;
+    background: #8d8a96;
+  }
+  .lg--new::before {
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .stack-bars {
+    display: grid;
+    gap: 16px;
+    margin: 0;
+    padding: clamp(22px, 3vw, 44px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .stack-bars__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+  }
+  .stack-bars__of {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+  }
+  .sb-row {
+    display: grid;
+    gap: 8px;
+  }
+  .sb-row__name {
+    font-size: 14px;
+    color: var(--fg-2);
+  }
+  .sb-row__bar {
+    display: flex;
+    height: 44px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(241, 241, 241, 0.04);
+  }
+  .sb {
+    display: grid;
+    place-items: center;
+    width: 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0b0912;
+    font-variant-numeric: tabular-nums;
+    transition: width 1.3s var(--ease-out);
+  }
+  .stack-bars.is-on .sb {
+    width: var(--w);
+  }
+  .sb--direct {
+    background: #4ade80;
+  }
+  .sb--detour {
+    background: #f6c27a;
+    transition-delay: 0.15s;
+  }
+  .sb--fail {
+    background: #e5484d;
+    color: #fff;
+    transition-delay: 0.3s;
+  }
+  @media (min-width: 700px) {
+    .sb-row {
+      grid-template-columns: 130px minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+
+  .ratings {
+    display: grid;
+    gap: 14px;
+  }
+  .rating {
+    display: grid;
+    gap: 22px;
+    padding: clamp(22px, 2.6vw, 36px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+  }
+  .rating__scale {
+    position: relative;
+    height: 56px;
+    margin: 0 18px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .rating__line {
+    position: absolute;
+    bottom: 13px;
+    left: calc(var(--a) * 100%);
+    width: calc((var(--b) - var(--a)) * 100%);
+    height: 2px;
+    background: linear-gradient(90deg, #8d8a96, var(--accent));
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 1.1s var(--ease-out) 0.2s;
+  }
+  .rating__dot {
+    position: absolute;
+    bottom: 8px;
+    left: calc(var(--x) * 100%);
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+    z-index: 1;
+  }
+  .rating__dot b {
+    position: absolute;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+  .rating__dot--old {
+    background: #8d8a96;
+  }
+  .rating__dot--old b {
+    color: var(--fg-3);
+  }
+  .rating__dot--new {
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.4s ease 1s;
+  }
+  .rating__dot--new b {
+    color: var(--accent);
+  }
+  .rating.is-on .rating__line {
+    transform: none;
+  }
+  .rating.is-on .rating__dot--new {
+    opacity: 1;
+  }
+  .rating__obs {
+    color: var(--fg-2);
+    font-size: 15px;
+  }
+  @media (min-width: 900px) {
+    .ratings {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .prefer {
+    font-size: clamp(22px, 2vw, 32px);
+    letter-spacing: -0.02em;
+  }
+  .prefer span {
+    color: var(--accent);
+  }
+
+  /* Dumbbell chart */
+  .dumb {
+    --name: minmax(120px, 0.34fr);
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: clamp(18px, 3vw, 44px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+    overflow-x: auto;
+  }
+  .dumb__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-bottom: 10px;
+  }
+  .dumb__axis-note {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+  }
+  .dumb__axis,
+  .dumb__row {
+    display: grid;
+    grid-template-columns: var(--name) minmax(180px, 1fr) 64px 92px;
+    gap: 16px;
+    align-items: center;
+    min-width: 560px;
+  }
+  .dumb__ticks {
+    position: relative;
+    height: 16px;
+    margin: 0 7px;
+  }
+  .dumb__ticks i {
+    position: absolute;
+    left: calc(var(--x) * 100%);
+    transform: translateX(-50%);
+    font-style: normal;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--fg-3);
+  }
+  .dumb__rows {
+    display: grid;
+  }
+  .dumb__row {
+    padding: 9px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .dumb__name {
+    color: var(--fg-2);
+  }
+  .dumb__track {
+    position: relative;
+    height: 14px;
+    margin: 0 7px;
+    background: linear-gradient(90deg, rgba(241, 241, 241, 0.06) 1px, transparent 1px) 0 0 / 12.5% 100%;
+  }
+  .dumb__seg {
+    position: absolute;
+    top: 6px;
+    left: calc(var(--a) * 100%);
+    width: calc((var(--b) - var(--a)) * 100%);
+    height: 2px;
+    background: rgba(241, 241, 241, 0.25);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 0.9s var(--ease-out) calc(0.2s + var(--i) * 0.05s);
+  }
+  .dumb__row--up .dumb__seg {
+    background: linear-gradient(90deg, #8d8a96, var(--accent));
+  }
+  .dumb__row--down .dumb__seg {
+    background: linear-gradient(90deg, #f6c27a, #8d8a96);
+    transform-origin: 100% 50%;
+  }
+  .dumb__dot {
+    position: absolute;
+    top: 1px;
+    left: calc(var(--x) * 100%);
+    width: 12px;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+  }
+  .dumb__dot--old {
+    background: #8d8a96;
+  }
+  .dumb__dot--new {
+    background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(155, 140, 255, 0.18);
+    opacity: 0;
+    transition: opacity 0.4s ease calc(0.7s + var(--i) * 0.05s);
+  }
+  .dumb__row--down .dumb__dot--new {
+    background: #f6c27a;
+    box-shadow: 0 0 0 3px rgba(246, 194, 122, 0.18);
+  }
+  .dumb.is-on .dumb__seg {
+    transform: none;
+  }
+  .dumb.is-on .dumb__dot--new {
+    opacity: 1;
+  }
+  .dumb__vals {
+    font-variant-numeric: tabular-nums;
+    color: var(--fg-3);
+    text-align: right;
+  }
+  .dumb__vals b {
+    font-weight: 500;
+    color: var(--fg);
+  }
+  .dumb__row--down .dumb__vals b {
+    color: #f6c27a;
+  }
+  .dumb__time {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--fg-3);
+    text-align: right;
+  }
+  @media (max-width: 699px) {
+    .dumb__axis,
+    .dumb__row {
+      grid-template-columns: 104px minmax(0, 1fr) 44px;
+      gap: 10px;
+      min-width: 0;
+    }
+    .dumb__axis > span:last-child,
+    .dumb__time,
+    .dumb__time-note {
+      display: none;
+    }
+    .dumb__row {
+      font-size: 13px;
+    }
+    .dumb__axis-note {
+      margin-left: 0;
+    }
+  }
+
+  /* ---------- Ship ---------- */
+  .renames {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .renames li {
+    display: grid;
+    gap: 6px 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: clamp(17px, 1.4vw, 21px);
+    letter-spacing: -0.015em;
+  }
+  .renames__from {
+    color: var(--fg-3);
+    text-decoration: line-through;
+    text-decoration-color: rgba(241, 241, 241, 0.3);
+  }
+  .renames__arrow {
+    display: none;
+  }
+  .renames__to {
+    color: var(--fg);
+  }
+  @media (min-width: 900px) {
+    .renames li {
+      grid-template-columns: minmax(0, 1fr) 48px minmax(0, 1fr);
+      align-items: center;
+    }
+    .renames__arrow {
+      display: block;
+      position: relative;
+      height: 1px;
+      background: linear-gradient(90deg, var(--line-strong), var(--accent));
+    }
+    .renames__arrow::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: -4px;
+      width: 8px;
+      height: 8px;
+      border-top: 1px solid var(--accent);
+      border-right: 1px solid var(--accent);
+      transform: rotate(45deg);
+    }
+  }
+
+  .handoffs {
+    display: grid;
+    gap: 14px;
+  }
+  .handoffs li {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: clamp(20px, 2.2vw, 30px);
+    border-radius: var(--radius);
+    border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent);
+    background:
+      radial-gradient(90% 90% at 0% 0%, color-mix(in srgb, var(--tone) 22%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
+  }
+  .handoffs__team {
+    justify-self: start;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--tone);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .handoffs h4 {
+    font-size: clamp(20px, 1.7vw, 26px);
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  .handoffs p {
+    color: var(--fg-2);
+    font-size: 15px;
+  }
+  @media (min-width: 900px) {
+    .handoffs {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .timeline {
+    position: relative;
+    display: grid;
+    gap: 0;
+  }
+  .timeline li {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    padding: 0 0 26px 28px;
+  }
+  .timeline li::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 6px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+  }
+  .timeline li::after {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 18px;
+    bottom: 0;
+    width: 1px;
+    background: var(--line-strong);
+  }
+  .timeline li:last-child::after {
+    display: none;
+  }
+  .timeline li.is-launch::before {
+    background: var(--accent);
+    box-shadow: 0 0 0 6px rgba(155, 140, 255, 0.18);
+  }
+  .timeline__when {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+  .timeline__what {
+    font-size: 17px;
+    color: var(--fg);
+  }
+  @media (min-width: 1024px) {
+    .timeline {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      padding-top: 24px;
+    }
+    .timeline li {
+      padding: 26px 18px 0 0;
+    }
+    .timeline li::before {
+      left: 0;
+      top: -5px;
+    }
+    .timeline li::after {
+      left: 14px;
+      right: 0;
+      top: 0;
+      bottom: auto;
+      width: auto;
+      height: 1px;
+    }
+  }
+</style>

@@ -1,0 +1,110 @@
+---
+import { Picture } from 'astro:assets';
+
+interface Props {
+  client: string;
+  title: string;
+  image: ImageMetadata;
+  href: string;
+  accent: string;
+}
+const { client, title, image, href, accent } = Astro.props;
+const external = /^https?:/.test(href);
+---
+
+<section class="next" style={`--accent-next:${accent}`} aria-label="Next case study">
+  <a class="next__link container" href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener' : undefined} data-cursor="Next" data-cursor-color={accent}>
+    <div class="next__text">
+      <p class="label"><span class="label__index">Next</span><span class="label__rule"></span><span>{client}</span></p>
+      <h2 class="next__title">{title}</h2>
+      <span class="next__cta">
+        View case study
+        <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 11 L11 3 M5 3 H11 V9" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg>
+      </span>
+    </div>
+    <div class="next__media">
+      <Picture
+        src={image}
+        alt=""
+        widths={[480, 800, 1100]}
+        sizes="(min-width: 1024px) 40vw, 92vw"
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        loading="lazy"
+      />
+    </div>
+  </a>
+</section>
+
+<style>
+  .next {
+    border-top: 1px solid var(--line);
+  }
+  .next__link {
+    display: grid;
+    gap: 32px;
+    align-items: center;
+    padding-block: clamp(64px, 9vw, 140px);
+  }
+  .next__text {
+    display: grid;
+    gap: 24px;
+  }
+  .next__title {
+    font-size: clamp(36px, 5vw, 88px);
+    font-weight: 400;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    text-wrap: balance;
+    transition: color 0.5s ease;
+  }
+  .next__link:hover .next__title {
+    color: #fff;
+  }
+  .next__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--fg-2);
+  }
+  .next__cta svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.5s var(--ease-out);
+  }
+  .next__link:hover .next__cta svg {
+    transform: translate(3px, -3px);
+  }
+  .next__media {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .next__media::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(60% 60% at 100% 0%, color-mix(in srgb, var(--accent-next) 30%, transparent), transparent 70%);
+    pointer-events: none;
+  }
+  .next__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.06);
+    transition: transform 1.2s var(--ease-out);
+  }
+  .next__link:hover .next__media :global(img) {
+    transform: scale(1);
+  }
+  @media (min-width: 1024px) {
+    .next__link {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 64px;
+    }
+  }
+</style>

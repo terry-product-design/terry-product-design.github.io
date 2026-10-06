@@ -1,0 +1,241 @@
+---
+import { Picture } from 'astro:assets';
+
+interface Props {
+  client: string;
+  title: string;
+  intro: string;
+  index: number;
+  total: number;
+  meta: { k: string; v: string }[];
+  cover: ImageMetadata;
+  coverAlt: string;
+  /** Show the whole cover image (no crop, no parallax) — for covers with devices near the edges. */
+  coverFull?: boolean;
+  stats: { value: number; prefix?: string; suffix?: string; label: string }[];
+}
+const { client, title, intro, index, total, meta, cover, coverAlt, stats, coverFull = false } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+const home = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+---
+
+<header class="chero" id="top">
+  <div class="container">
+    <div class="chero__bar" data-hero-fade>
+      <a class="chero__back" href={`${home}#work`}>
+        <span class="chero__back-arrow" aria-hidden="true">←</span>
+        <span class="roll"><span class="roll__inner" data-text="All work">All work</span></span>
+      </a>
+      <p class="label"><span class="label__index">Case study</span><span class="label__rule"></span><span>{pad(index)} / {pad(total)}</span></p>
+    </div>
+
+    <p class="chero__client" data-hero-fade>{client}</p>
+    <h1 class="chero__title" data-split-lines>{title}</h1>
+
+    <div class="chero__grid">
+      <p class="chero__intro">{intro}</p>
+      <dl class="chero__meta">
+        {
+          meta.map((m) => (
+            <div>
+              <dt>{m.k}</dt>
+              <dd>{m.v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </div>
+
+  <div class="container">
+    <div
+      class:list={['chero__cover', { 'chero__cover--full': coverFull }]}
+      style={coverFull ? `aspect-ratio:${cover.width} / ${cover.height}` : undefined}
+      data-cover
+    >
+      <div class="chero__cover-inner" data-cover-img={coverFull ? undefined : ''}>
+        <Picture
+          src={cover}
+          alt={coverAlt}
+          widths={[640, 960, 1400, 2000, 2800]}
+          sizes="(min-width: 1680px) 1584px, 94vw"
+          formats={['avif', 'webp']}
+          fallbackFormat="jpg"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
+    </div>
+
+    <ul class="chero__stats">
+      {
+        stats.map((s) => (
+          <li data-reveal="fade-up">
+            <span class="chero__stat-value">
+              {s.prefix && <small>{s.prefix}</small>}
+              <span data-count={s.value}>{s.value}</span>
+              {s.suffix && <small>{s.suffix}</small>}
+            </span>
+            <span class="chero__stat-label">{s.label}</span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</header>
+
+<style>
+  .chero {
+    padding-top: calc(var(--nav-h) + clamp(32px, 5vw, 72px));
+    padding-bottom: clamp(64px, 8vw, 120px);
+  }
+  .chero__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: clamp(48px, 7vw, 112px);
+  }
+  .chero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--fg-2);
+    transition: color 0.3s ease;
+  }
+  .chero__back:hover {
+    color: var(--fg);
+  }
+  .chero__back-arrow {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    transition: transform 0.5s var(--ease-out), border-color 0.3s ease;
+  }
+  .chero__back:hover .chero__back-arrow {
+    transform: translateX(-4px);
+    border-color: var(--fg);
+  }
+  .chero__client {
+    margin-bottom: 18px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .chero__title {
+    max-width: 14ch;
+    font-size: clamp(48px, 8.4vw, 152px);
+    font-weight: 400;
+    letter-spacing: -0.055em;
+    line-height: 0.95;
+  }
+  .chero__grid {
+    display: grid;
+    gap: 40px;
+    margin-top: clamp(40px, 5vw, 80px);
+  }
+  .chero__intro {
+    max-width: 36ch;
+    font-size: clamp(20px, 1.7vw, 27px);
+    font-weight: 300;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+  }
+  .chero__meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    border-top: 1px solid var(--line);
+  }
+  .chero__meta div {
+    display: grid;
+    gap: 6px;
+    padding: 16px 16px 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .chero__meta dt {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .chero__meta dd {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .chero__cover {
+    position: relative;
+    margin-top: clamp(48px, 6vw, 96px);
+    aspect-ratio: 16 / 10;
+    border-radius: calc(var(--radius) + 6px);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .chero__cover-inner {
+    position: absolute;
+    inset: -6% 0;
+  }
+  .chero__cover-inner :global(picture),
+  .chero__cover-inner :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+  .chero__cover-inner :global(img) {
+    object-fit: cover;
+  }
+  .chero__cover--full .chero__cover-inner {
+    inset: 0;
+  }
+
+  .chero__stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: clamp(32px, 4vw, 56px);
+  }
+  .chero__stats li {
+    display: grid;
+    gap: 10px;
+    padding: 24px 16px 24px 0;
+    border-top: 1px solid var(--line);
+  }
+  .chero__stat-value {
+    display: flex;
+    align-items: baseline;
+    font-size: clamp(40px, 4.4vw, 76px);
+    font-weight: 300;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+    font-variant-numeric: tabular-nums;
+  }
+  .chero__stat-value small {
+    font-size: 0.55em;
+    color: var(--accent);
+  }
+  .chero__stat-label {
+    font-size: 14px;
+    color: var(--fg-2);
+  }
+
+  @media (min-width: 1024px) {
+    .chero__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      align-items: start;
+    }
+    .chero__meta {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .chero__stats {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+</style>

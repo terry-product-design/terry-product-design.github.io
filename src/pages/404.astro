@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+const home = import.meta.env.BASE_URL;
+---
+
+<Base title="Page not found — Terry Wu">
+  <main class="nf container" id="main">
+    <p class="label"><span class="label__index">404</span><span class="label__rule"></span><span>Lost in the flow</span></p>
+    <h1 class="nf__title">
+      This page got <span class="nf__tangled">tangled</span>.<br />
+      Let’s make it <span class="serif">simple.</span>
+    </h1>
+    <a class="btn btn--solid" href={home}>
+      <span class="roll"><span class="roll__inner" data-text="Back to home">Back to home</span></span>
+    </a>
+  </main>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 36px;
+  }
+  .nf__title {
+    font-size: clamp(44px, 7vw, 120px);
+    font-weight: 400;
+    letter-spacing: -0.05em;
+    line-height: 0.98;
+  }
+  .nf__title .serif {
+    color: var(--accent);
+  }
+  .nf__tangled {
+    display: inline-block;
+    transform: rotate(-4deg) translateY(0.06em);
+    color: var(--fg-2);
+  }
+</style>

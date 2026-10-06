@@ -1,0 +1,722 @@
+---
+import { getImage } from 'astro:assets';
+import Case from '../../layouts/Case.astro';
+import CaseHero from '../../components/case/CaseHero.astro';
+import Chapter from '../../components/case/Chapter.astro';
+import Figure from '../../components/case/Figure.astro';
+import DeviceVideo from '../../components/case/DeviceVideo.astro';
+import Feature from '../../components/case/Feature.astro';
+import Pan from '../../components/case/Pan.astro';
+import Ecosystem from '../../components/case/Ecosystem.astro';
+import Personas from '../../components/case/Personas.astro';
+import NextProject from '../../components/case/NextProject.astro';
+import { works } from '../../data/content';
+
+import cover from '../../assets/case/imslp-app/cover.png';
+import firstViewer from '../../assets/case/imslp-app/first-viewer.png';
+import competitor1 from '../../assets/case/imslp-app/competitor-1.png';
+import competitor2 from '../../assets/case/imslp-app/competitor-2.png';
+import competitor3 from '../../assets/case/imslp-app/competitor-3.png';
+import interviews from '../../assets/case/imslp-app/interviews.png';
+import personaAmateur from '../../assets/case/imslp-app/persona-amateur.png';
+import personaStudent from '../../assets/case/imslp-app/persona-student.png';
+import personaPro from '../../assets/case/imslp-app/persona-pro.png';
+import competitiveReviews from '../../assets/case/imslp-app/competitive-reviews.png';
+import competitivePricing from '../../assets/case/imslp-app/competitive-pricing.png';
+import functionalMap from '../../assets/case/imslp-app/functional-map.jpg';
+import ipadOrientation from '../../assets/case/imslp-app/ipad-orientation.png';
+import ipadNavigation from '../../assets/case/imslp-app/ipad-navigation.png';
+import phaseDiscover from '../../assets/case/imslp-app/phase-discover.png';
+import phasePractice from '../../assets/case/imslp-app/phase-practice.png';
+import phaseTrack from '../../assets/case/imslp-app/phase-track.png';
+import phasePerform from '../../assets/case/imslp-app/phase-perform.png';
+import featurePlayback from '../../assets/case/imslp-app/feature-playback.png';
+import tapZones from '../../assets/case/imslp-app/tap-zones.png';
+import metronome from '../../assets/case/imslp-app/metronome.png';
+import tuner from '../../assets/case/imslp-app/tuner.png';
+import practiceRoom from '../../assets/case/imslp-app/practice-room.png';
+import screens from '../../assets/case/imslp-app/screens.png';
+import molaTeam from '../../assets/case/imslp-app/mola-team.jpg';
+import molaAudience from '../../assets/case/imslp-app/mola-audience.jpg';
+import deviceMask from '../../assets/case/imslp-app/device-mask.png';
+
+const SLUG = 'imslp-app';
+const index = works.findIndex((w) => w.slug === 'imslp_app');
+const next = works[(index + 1) % works.length];
+
+const chapters = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'brief', label: 'The brief' },
+  { id: 'research', label: 'Research' },
+  { id: 'strategy', label: 'Strategy' },
+  { id: 'definition', label: 'Definition' },
+  { id: 'ipad', label: 'Designing for iPad' },
+  { id: 'journey', label: 'The journey' },
+  { id: 'outcome', label: 'Outcome' },
+  { id: 'reflection', label: 'Reflection' },
+];
+const pad = (n: number) => String(n).padStart(2, '0');
+const num = (id: string) => pad(chapters.findIndex((c) => c.id === id) + 1);
+
+const share = await getImage({ src: cover, width: 1200, height: 630, fit: 'cover', format: 'jpg', quality: 82 });
+const phases = ['Discover', 'Practice', 'Track', 'Perform'];
+const wideSizes = '(min-width: 1680px) 1584px, 94vw';
+---
+
+<Case
+  title="IMSLP App — Carrying Your Practice Room in Your Device · Terry Wu"
+  description="Case study: a 0→1 iPad app that turns IMSLP, the world's largest open-access sheet music library, into a daily practice companion."
+  image={share.src}
+  chapters={chapters}
+>
+  <CaseHero
+    client="IMSLP · iPad app"
+    title="Carrying Your Practice Room in Your Device"
+    intro="Turning the world’s largest open-access sheet music library into a daily practice companion — a 0→1 iPad app I researched, defined and designed end to end."
+    index={index + 1}
+    total={works.length}
+    meta={[
+      { k: 'Role', v: 'Product Designer & Planner' },
+      { k: 'Scope', v: 'Product design · Product planning · User research' },
+      { k: 'Platform', v: 'iPadOS' },
+      { k: 'Milestone', v: 'Beta demoed at MOLA, June 2025' },
+    ]}
+    cover={cover}
+    coverAlt="IMSLP app on two iPads: a practice room dashboard and a score viewer"
+    stats={[
+      { value: 2, suffix: 'M+', label: 'Monthly visits to IMSLP' },
+      { value: 2000, suffix: '+', label: 'Valid survey responses' },
+      { value: 10, label: 'User interviews' },
+      { value: 30, suffix: '+', label: 'Features planned' },
+    ]}
+  />
+
+  <!-- 01 Overview -->
+  <Chapter id="overview" num={num('overview')} label="Overview">
+    <h2 class="c-h2" data-split-lines>From a free archive to a daily <span class="serif">ritual</span>.</h2>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">The context</p>
+        <div class="prose">
+          <p>
+            IMSLP, the world’s largest open-access sheet music library, is widely used by classical musicians for score discovery. With over <strong>2 million monthly visits</strong>, it began as a web-based archive — and is now evolving into a broader ecosystem that supports musicians’ daily practice, planning and collaboration.
+          </p>
+          <p>The goal: turn passive visits into deeper, long-term engagement.</p>
+        </div>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">My role</p>
+        <div class="prose">
+          <p>
+            As the product designer and planner, I led the project from early research to product definition and cross-functional alignment. I identified core user problems, reframed the product direction, and proposed a focused strategy.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="shift" data-reveal="fade-up" aria-label="Shift in approach: from feature-driven output to scenario-based planning">
+      <span class="shift__from">Feature-driven output</span>
+      <span class="shift__arrow" aria-hidden="true"></span>
+      <span class="shift__to">Scenario-based planning</span>
+    </div>
+  </Chapter>
+
+  <!-- 02 The brief -->
+  <Chapter id="brief" num={num('brief')} label="The brief">
+    <h2 class="c-h2" data-split-lines>Starting from a <span class="serif">vague</span> goal</h2>
+    <blockquote data-reveal="fade-up">
+      <p class="pull">“Can we make users stay longer — not just <em>download scores and leave?</em>”</p>
+      <p class="pull-cite">The initial ask from IMSLP’s founder</p>
+    </blockquote>
+    <div class="prose" data-reveal="fade-up">
+      <p>
+        He asked me to design a new digital <strong>score viewer</strong> with annotations, highlighting and freehand drawing. Within weeks, I delivered a working version — but the process uncovered deeper problems.
+      </p>
+    </div>
+    <Figure src={firstViewer} alt="First version of the score viewer with annotation and drawing tools" caption="The first score viewer, delivered within weeks" zoom />
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Problem discovery: what we didn’t know could hurt us</h3>
+      <p class="prose" data-reveal="fade-up">The founder’s idea sounded simple, but I noticed two major blind spots.</p>
+    </div>
+    <div class="cards cards--2">
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">01</span>
+        <h4 class="c-h3">Crowded market</h4>
+        <p>Well-known score-viewing apps like forScore already existed. Was this still a true opportunity — or a saturated space?</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">02</span>
+        <h4 class="c-h3">No clear users</h4>
+        <p>The team relied on feedback from musicians they personally knew. Without defined personas, the risk of building for the wrong needs was high.</p>
+      </div>
+    </div>
+    <div class="trio">
+      <Figure src={competitor1} alt="Competitor score app screenshot with tuner overlay" sizes="(min-width: 1024px) 20vw, 30vw" widths={[300, 500, 742]} />
+      <Figure src={competitor2} alt="Competitor score app screenshot showing a score page" sizes="(min-width: 1024px) 20vw, 30vw" widths={[300, 500, 742]} />
+      <Figure src={competitor3} alt="Competitor note-taking app showing a score page" sizes="(min-width: 1024px) 20vw, 30vw" widths={[300, 500, 740]} />
+      <p class="trio__caption">Mainstream products include forScore, Piascore and Goodnotes.</p>
+    </div>
+  </Chapter>
+
+  <!-- 03 Research -->
+  <Chapter id="research" num={num('research')} label="Research">
+    <h2 class="c-h2" data-split-lines>How I uncovered <span class="serif">real</span> needs</h2>
+    <p class="lead" data-reveal="fade-up">
+      To move beyond assumptions, I launched two large-scale surveys on the IMSLP website — gathering over <strong>2,000 valid responses</strong>.
+    </p>
+    <div class="stats">
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="50">50</span><small>%</small></span>
+        <span class="stat-cell__label">already used score-viewing apps with annotation tools.</span>
+      </div>
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="70">70</span><small>%</small></span>
+        <span class="stat-cell__label">still wanted IMSLP to offer its own version — despite using other tools.</span>
+      </div>
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="20">20</span><small>%</small></span>
+        <span class="stat-cell__label">were interested in <strong>practice tracking</strong> and <strong>access to commercial recordings</strong>.</span>
+      </div>
+      <div class="stat-cell" data-reveal="fade-up">
+        <span class="stat-cell__value"><span data-count="3">3</span><small class="word">user types</small></span>
+        <span class="stat-cell__label">Amateurs, music students and professionals — with <strong>students and amateurs as the majority</strong>.</span>
+      </div>
+    </div>
+
+    <aside class="callout" data-reveal="fade-up">
+      <p class="kicker">Strategic insight</p>
+      <div class="callout__body">
+        <span class="callout__big"><span data-count="80">80</span><small>%</small></span>
+        <div class="stack">
+          <h3 class="c-h3">People love IMSLP because it’s free — but that’s also the trap.</h3>
+          <p class="prose">
+            More than 80% of users recommend IMSLP for its free access to scores. That reflects deep appreciation, and raises a critical question: <strong>how can IMSLP build long-term value beyond being a free archive?</strong>
+          </p>
+        </div>
+      </div>
+    </aside>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Going deeper with user interviews</h3>
+      <div class="prose" data-reveal="fade-up">
+        <p>
+          Motivated by the survey, the founder wanted to dig deeper. I planned and led usability tests and <strong>10 interviews</strong> with IMSLP users to validate the insights and test early concepts.
+        </p>
+      </div>
+    </div>
+    <Figure src={interviews} alt="Grid of remote interview participants next to a score being annotated on an iPad" caption="Remote interviews with music students, part-time teachers and professional performers" />
+    <ol class="nlist" data-reveal="fade-up">
+      <li><span>01</span><span><strong>iPads have become essential</strong> for both students and professionals when practicing.</span></li>
+      <li><span>02</span><span><strong>Switching between apps breaks flow</strong> — users juggle PDF readers, tuners and metronomes.</span></li>
+      <li><span>03</span><span><strong>Offline access</strong> to IMSLP scores would offer significant value.</span></li>
+      <li><span>04</span><span><strong>Students in particular struggle to manage progress</strong> — fast-paced lessons, multiple pieces at once.</span></li>
+    </ol>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">Clarifying user needs</h3>
+      <div class="prose" data-reveal="fade-up">
+        <p>
+          Professionals and experienced amateurs usually have strong fundamentals and practice efficiently on their own. <strong>Students face more challenges and need greater support.</strong> They’re open to new tools that keep them motivated — but switching between tools breaks concentration, and schedules full of lessons, assignments and performances make progress hard to track.
+        </p>
+      </div>
+    </div>
+    <div class="bleed">
+      <Personas
+        items={[
+          {
+            name: 'Amateur performer',
+            ages: '22–30',
+            avatar: personaAmateur,
+            practice: 'More focused on teaching and self-improvement — they need better ways to manage student progress, and advanced technique courses for their own growth.',
+            community: 'Building a professional identity and network — posting opportunities, finding ensemble partners and staying present in the music world.',
+          },
+          {
+            name: 'Student',
+            ages: 'under 22',
+            avatar: personaStudent,
+            primary: true,
+            practice: 'Often use different apps to stay motivated or support their practice. With tight schedules of lessons and performances, they easily lose track of their progress.',
+            community: 'Looking for guidance and community — mentors, experience through music events, and future collaborators.',
+          },
+          {
+            name: 'Professional player',
+            ages: '30–40',
+            avatar: personaPro,
+            practice: 'Already efficient with practice goals — their focus is on stage presence and coordinating with the ensemble.',
+            community: 'Values collaboration — joining or leading music projects, discovering new performance partners and growing their presence.',
+          },
+        ]}
+      />
+    </div>
+  </Chapter>
+
+  <!-- 04 Strategy -->
+  <Chapter id="strategy" num={num('strategy')} label="Strategy">
+    <h2 class="c-h2" data-split-lines>Turning insights into <span class="serif">strategy</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      IMSLP should evolve from a passive score archive into <strong>an active part of a musician’s daily routine</strong> — supporting the full practice journey and long-term growth.
+    </p>
+    <div class="bleed">
+      <Ecosystem />
+    </div>
+    <div class="cards cards--2">
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">01</span>
+        <p>
+          Leverage IMSLP’s 2M monthly visits not just as traffic, but as the foundation of a sustainable <strong>musical ecosystem</strong> — anchored in the real journey of musicians, from discovering scores, to daily practice, to finding collaborators or accompaniment.
+        </p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">02</span>
+        <p>Evolve IMSLP into a platform that grows with its users, turning occasional visits into long-term engagement.</p>
+      </div>
+    </div>
+  </Chapter>
+
+  <!-- 05 Definition -->
+  <Chapter id="definition" num={num('definition')} label="Definition">
+    <h2 class="c-h2" data-split-lines>Leading the product definition, <span class="serif">0 → 1</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      The team had no dedicated PM — the founder had been directing changes based on technical needs. <strong>I stepped in to plan the full product functionality and structure.</strong>
+    </p>
+    <div class="split split--wide-left">
+      <Figure src={competitiveReviews} alt="Competitive analysis of app store reviews for forScore, Piascore and the existing IMSLP app" caption="App-store review analysis" zoom />
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">Competitive analysis</p>
+        <div class="prose">
+          <p>
+            I mapped <strong>functional differentiation, pricing models and opportunity gaps</strong>, and reviewed app-store feedback to find the experience pain points where our product could stand out.
+          </p>
+        </div>
+      </div>
+    </div>
+    <Figure src={competitivePricing} alt="Table comparing features and pricing across score-viewing apps" caption="Feature & pricing comparison — tap to enlarge" zoom class="bleed" sizes={wideSizes} widths={[800, 1400, 2208]} />
+
+    <div class="stack">
+      <p class="kicker" data-reveal="fade-up">Functional map</p>
+      <div class="prose" data-reveal="fade-up">
+        <p>
+          I created a functional map to help the design team <strong>focus on core functionality</strong>, aligning everyone around a shared vision. Then I worked closely with the founder to <strong>define priorities and assess technical feasibility</strong> — effectively filling the missing PM role.
+        </p>
+      </div>
+    </div>
+    <div class="bleed">
+      <Pan src={functionalMap} alt="Functional map of the IMSLP app, grouping every feature by area" caption="The full functional map — drag or scroll sideways" />
+    </div>
+  </Chapter>
+
+  <!-- 06 iPad -->
+  <Chapter id="ipad" num={num('ipad')} label="Designing for iPad">
+    <h2 class="c-h2" data-split-lines>The instrument they practice with: an iPad on a <span class="serif">music stand</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      Many classical musicians have replaced paper scores with iPads. But an iPad in a practice room behaves nothing like a phone in your hand.
+    </p>
+    <div class="decision">
+      <Figure src={ipadOrientation} alt="Two-page score in portrait, too small to read, versus the same spread in landscape" bg="#c9c9cb" zoom />
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">Decision 01</p>
+        <h3 class="c-h3">Score viewing: portrait & landscape</h3>
+        <div class="prose">
+          <p>
+            On a tablet, a two-page spread in portrait makes each page too small to read comfortably. The viewer <strong>automatically rotates to landscape</strong> when users choose two-page display — matching how musicians hold and read a physical open score.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="decision">
+      <Figure src={ipadNavigation} alt="Bottom tab bar layout compared with a side rail layout on iPad" bg="#c9d3e3" zoom />
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">Decision 02</p>
+        <h3 class="c-h3">Navigation: side rail over bottom tabs</h3>
+        <div class="prose">
+          <p>
+            On iPad, the screen is wide enough for a <strong>side rail</strong> to stay within reach without taking vertical space — leaving more room for the score and practice content musicians need to focus on.
+          </p>
+        </div>
+      </div>
+    </div>
+  </Chapter>
+
+  <!-- 07 Journey -->
+  <Chapter id="journey" num={num('journey')} label="The journey">
+    <h2 class="c-h2" data-split-lines>Grounded in musicians’ <span class="serif">real</span> journey</h2>
+    <p class="lead" data-reveal="fade-up">
+      Interviews and survey data revealed four phases in a musician’s daily cycle. Rather than designing around a feature list, I shaped the app to mirror this natural rhythm.
+    </p>
+
+    <nav class="jbar" aria-label="Journey phases" data-jbar>
+      <ol>
+        {
+          phases.map((p, i) => (
+            <li>
+              <a href={`#phase-${p.toLowerCase()}`} data-jbar-link={i}>
+                <span>{pad(i + 1)}</span>
+                {p}
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+      <span class="jbar__track" aria-hidden="true"><span data-jbar-fill></span></span>
+    </nav>
+
+    <!-- Discover -->
+    <section class="phase" id="phase-discover" data-phase="0" aria-labelledby="ph-1">
+      <div class="phase__head" data-reveal="fade-up">
+        <span class="phase__num">01</span>
+        <h3 class="phase__title" id="ph-1">Discover</h3>
+      </div>
+      <Figure src={phaseDiscover} alt="A classical music library with tall wooden shelves" ratio="21 / 9" parallax class="bleed" sizes={wideSizes} widths={[800, 1400, 2000, 2816]} />
+      <p class="lead" data-reveal="fade-up">
+        Musicians search for repertoire by instrument, composer or genre. Where they once relied on music shops and libraries, platforms like IMSLP are now the go-to resource.
+      </p>
+      <Feature
+        scenario="Musicians already rely on IMSLP to find scores — but to read offline, they have to download from the website and open files in a separate app."
+        title="Discover & add to library"
+        points={[
+          'Browse IMSLP’s score library by category to find different works.',
+          'Set favourite filter tags for quicker searches.',
+          'Add scores to a personal library for easy offline viewing on the device.',
+        ]}
+      >
+        <DeviceVideo slot="media" slug={SLUG} mask={deviceMask.src} name="discover-library" label="Browsing the score library and adding a score to the personal library" />
+      </Feature>
+    </section>
+
+    <!-- Practice -->
+    <section class="phase" id="phase-practice" data-phase="1" aria-labelledby="ph-2">
+      <div class="phase__head" data-reveal="fade-up">
+        <span class="phase__num">02</span>
+        <h3 class="phase__title" id="ph-2">Practice</h3>
+      </div>
+      <Figure src={phasePractice} alt="Close-up of a violinist practicing" ratio="21 / 9" parallax class="bleed" sizes={wideSizes} widths={[800, 1290]} />
+      <p class="lead" data-reveal="fade-up">
+        Musicians spend hours every day at their instrument — tracking progress, finding weak passages and correcting mistakes across multiple pieces in rotation.
+      </p>
+      <Feature
+        flip
+        scenario="Students practice multiple pieces each day and regularly report progress to their teachers. Once a session begins, they want their focus on the score — not on the interface."
+        title="Practice & Focus Mode"
+        points={[
+          'Automatically track time spent on each score during practice.',
+          'Set timers as reminders during sessions.',
+          'Tap the center of the screen to enter Focus Mode — hiding the toolbar and boosting score contrast.',
+          'Add notes before and after each session to aid review.',
+        ]}
+      >
+        <DeviceVideo slot="media" slug={SLUG} mask={deviceMask.src} name="practice-focus" label="Entering Focus Mode while practicing a score" />
+      </Feature>
+      <Feature
+        scenario="Reviewing a recording means following along with the score. With a separate recording app, musicians keep switching — and lose track of which passage they’re hearing."
+        title="Score-synced playback"
+        points={[
+          'Recordings stay synced with page turns, so musicians review exactly what they played on each page.',
+          'Cross-score navigation shows every score captured in a session and jumps to any track instantly.',
+          'Adjustable playback speed, with the sync view on or off.',
+        ]}
+      >
+        <div slot="media">
+          <Figure src={featurePlayback} alt="Score viewer with a synced recording playback panel" sizes="(min-width: 900px) 440px, 80vw" widths={[440, 880, 1304]} bare />
+        </div>
+      </Feature>
+
+      <div class="decision">
+        <Figure src={tapZones} alt="Score page divided into previous page, focus mode and next page tap zones, next to a setlist overlay" bg="#a8a8a8" zoom />
+        <div class="stack" data-reveal="fade-up">
+          <div class="stack">
+            <p class="kicker">Tap zones</p>
+            <p class="prose">
+              Musicians often hold their instrument with one hand. Three invisible zones — <strong>left for previous page, center for Focus Mode, right for next</strong> — make page turns work with any quick tap, no posture change needed.
+            </p>
+          </div>
+          <div class="stack">
+            <p class="kicker">Setlist quick switch</p>
+            <p class="prose">A pull-up overlay shows every score in the current setlist for instant jumps between pieces, without leaving the viewer.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="decision">
+        <Figure src={metronome} alt="Metronome screens: tap to set BPM, beats per measure, accent and silent beats" sizes="(min-width: 900px) 40vw, 92vw" widths={[600, 1000, 1700]} zoom />
+        <div class="stack" data-reveal="fade-up">
+          <p class="kicker">Metronome</p>
+          <p class="prose">
+            Musicians want more than a click: tap-to-set BPM, custom beats per measure, accent and silent beats. Most score viewers don’t offer this — I studied nearly <strong>ten professional metronome apps</strong> and built these controls directly into the viewer.
+          </p>
+        </div>
+      </div>
+      <div class="decision">
+        <Figure src={tuner} alt="Tuner screens: pitch, A4 frequency, octave ranges and instrument sounds" sizes="(min-width: 900px) 40vw, 92vw" widths={[600, 1000, 1700]} zoom />
+        <div class="stack" data-reveal="fade-up">
+          <p class="kicker">Tuner</p>
+          <p class="prose">
+            A tuner for classical musicians must adapt to each instrument’s range: <strong>instrument-specific sound profiles</strong>, adjustable A4 frequency, and scale-tone playback across octaves.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Track -->
+    <section class="phase" id="phase-track" data-phase="2" aria-labelledby="ph-3">
+      <div class="phase__head" data-reveal="fade-up">
+        <span class="phase__num">03</span>
+        <h3 class="phase__title" id="ph-3">Track</h3>
+      </div>
+      <Figure src={phaseTrack} alt="A piano surrounded by stacks of sheet music" ratio="21 / 9" parallax class="bleed" sizes={wideSizes} widths={[800, 1290]} />
+      <p class="lead" data-reveal="fade-up">
+        Daily practice and upcoming performances create constant pressure. Students need to stay on top of progress across pieces — and often report to their teachers each week.
+      </p>
+      <Feature
+        scenario="Most music students play a major and a minor instrument. Musicians who compose or teach often manage three or more."
+        title="Switch room"
+        points={[
+          'Switch between dedicated practice rooms for each instrument, with time tracked per room.',
+          'Access each instrument’s scores without clutter.',
+          'See progress and upcoming performance or practice plans per instrument.',
+        ]}
+      >
+        <DeviceVideo slot="media" slug={SLUG} mask={deviceMask.src} name="switch-room" label="Switching between instrument practice rooms" />
+      </Feature>
+      <Feature
+        flip
+        scenario="Students balance frequent assignments with performance preparation, and struggle to keep track of practice across multiple pieces."
+        title="Practice plan"
+        points={[
+          'Create plans that list the scores to practice.',
+          'Track progress across different scores.',
+          'Set total target hours and get suggested daily practice time.',
+          'Quickly review logs and recordings for each score.',
+        ]}
+      >
+        <DeviceVideo slot="media" slug={SLUG} mask={deviceMask.src} name="practice-plan" label="Creating and reviewing a practice plan" />
+      </Feature>
+    </section>
+
+    <!-- Perform -->
+    <section class="phase" id="phase-perform" data-phase="3" aria-labelledby="ph-4">
+      <div class="phase__head" data-reveal="fade-up">
+        <span class="phase__num">04</span>
+        <h3 class="phase__title" id="ph-4">Perform</h3>
+      </div>
+      <Figure src={phasePerform} alt="Orchestra violinists performing on stage" ratio="21 / 9" parallax class="bleed" sizes={wideSizes} widths={[800, 1290]} />
+      <p class="lead" data-reveal="fade-up">
+        Delivering a polished interpretation on stage. Many performers still prefer paper scores for concerts — digital devices carry the risk of unexpected failure.
+      </p>
+      <p class="pull" data-reveal="fade-up">So the core product opportunity lives <em>before</em> the stage.</p>
+    </section>
+  </Chapter>
+
+  <!-- Interlude: the concept -->
+  <section class="interlude" aria-label="Design concept">
+    <div class="container">
+      <p class="interlude__lead" data-split-lines>
+        I anchored the design around a personal practice room. Opening the app should feel like <span class="serif">stepping into your own studio</span> — a space to store scores, reach for tools and see your progress.
+      </p>
+    </div>
+    <div class="container">
+      <Figure src={practiceRoom} alt="Sheet music on a piano under warm light, with the line: It feels just like opening your own practice room." ratio="16 / 8" parallax sizes={wideSizes} widths={[800, 1400, 2000, 2800]} />
+    </div>
+    <div class="container interlude__screens">
+      <Figure src={screens} alt="Overview of key IMSLP app screens" caption="Key screens across the practice journey" zoom sizes="(min-width: 1024px) 62vw, 92vw" widths={[600, 1000, 1400, 1800]} />
+    </div>
+  </section>
+
+  <!-- 08 Outcome -->
+  <Chapter id="outcome" num={num('outcome')} label="Outcome">
+    <h2 class="c-h2" data-split-lines>Early validation from the classical music <span class="serif">community</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      Before any public metrics, the IMSLP founder demoed the beta at <strong>MOLA Ann Arbor in June 2025</strong> — receiving strong interest and praise from classical music professionals.
+    </p>
+    <div class="split bleed">
+      <Figure src={molaTeam} alt="IMSLP founder and core team presenting on stage at MOLA" caption="IMSLP founder and core team at MOLA" sizes="(min-width: 900px) 46vw, 92vw" widths={[600, 1000, 1400, 2000]} />
+      <Figure src={molaAudience} alt="Audience in the MOLA conference hall" caption="MOLA Ann Arbor, June 2025" sizes="(min-width: 900px) 46vw, 92vw" widths={[600, 1000, 1400, 2000]} />
+    </div>
+    <div class="prose" data-reveal="fade-up">
+      <p>MOLA brings together performance librarians, publishers, developers, composers and performers, with sessions on practical skills, self-care and copyright.</p>
+    </div>
+
+    <blockquote class="testimonial" data-reveal="fade-up">
+      <p class="pull">“A tool I’d want to <em>use myself.</em>”</p>
+      <p class="pull-cite">Feedback from the IMSLP engineering team</p>
+      <p class="prose">
+        The engineering team and founder were genuinely excited about the app. Multiple engineers praised the thoughtful flow and detail — especially meaningful coming from one engineer with a classical background. It validated our design direction.
+      </p>
+    </blockquote>
+
+    <div class="stack" data-reveal="fade-up">
+      <h3 class="c-h3">What’s next</h3>
+      <div class="prose">
+        <p>
+          The app moved into its final development phase, with internal testing scheduled for Q3 2025 and a closed beta inviting IMSLP users — to observe behavior and build a feedback loop early.
+        </p>
+        <p>
+          More than a new feature, it’s a key step for IMSLP to <strong>build lasting relationships with its users</strong> and lay the foundation for future subscriptions and premium tools.
+        </p>
+      </div>
+    </div>
+  </Chapter>
+
+  <!-- 09 Reflection -->
+  <Chapter id="reflection" num={num('reflection')} label="Reflection">
+    <h2 class="c-h2" data-split-lines>Personal reflection & <span class="serif">growth</span></h2>
+    <p class="lead" data-reveal="fade-up">
+      Over the course of a year, my role expanded from designer to <strong>managing the entire product</strong>, planning over 30 features.
+    </p>
+    <div class="split">
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">What I’d do better</p>
+        <p class="prose">
+          Documentation. As features grew in number and complexity, the team’s cognitive load rose significantly, and verifying data connections often took extra back-and-forth.
+        </p>
+      </div>
+      <div class="stack" data-reveal="fade-up">
+        <p class="kicker">What I’ll carry forward</p>
+        <p class="prose">
+          For large-scale projects, <strong>establish detailed feature specifications and track key changes from the very beginning.</strong>
+        </p>
+      </div>
+    </div>
+  </Chapter>
+
+  <NextProject client={next.client} title={next.title} image={next.image} href={next.href} accent={next.accent} />
+</Case>
+
+<style>
+  .callout__body {
+    display: grid;
+    gap: 28px;
+    align-items: end;
+  }
+  @media (min-width: 900px) {
+    .callout__body {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: clamp(32px, 4vw, 64px);
+    }
+  }
+
+  /* Decisions: image + rationale */
+  .decision {
+    display: grid;
+    gap: clamp(24px, 3vw, 48px);
+    align-items: center;
+  }
+  /* Same image column everywhere, so stacked decisions line up */
+  @media (min-width: 900px) {
+    .decision {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    }
+  }
+
+  /* Journey sticky bar */
+  .jbar {
+    position: sticky;
+    top: calc(var(--nav-h) + 8px);
+    z-index: 5;
+    padding: 6px;
+    border-radius: 999px;
+    background: rgba(19, 17, 27, 0.82);
+    border: 1px solid var(--line);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+  }
+  :global(.nav-hidden) .jbar {
+    top: 12px;
+  }
+  .jbar ol {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .jbar a {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 8px;
+    padding: 10px 6px;
+    border-radius: 999px;
+    font-size: clamp(13px, 1.1vw, 15px);
+    color: var(--fg-3);
+    transition: color 0.4s ease, background-color 0.4s ease;
+  }
+  .jbar a span {
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+  .jbar a.is-active {
+    color: var(--fg);
+    background: rgba(155, 140, 255, 0.14);
+  }
+  .jbar a.is-active span {
+    color: var(--accent);
+  }
+  .jbar__track {
+    position: absolute;
+    left: 24px;
+    right: 24px;
+    bottom: 0;
+    height: 1px;
+  }
+  .jbar__track span {
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+  }
+  @media (max-width: 520px) {
+    .jbar a span {
+      display: none;
+    }
+  }
+
+  .phase {
+    display: grid;
+    gap: clamp(40px, 5vw, 80px);
+    scroll-margin-top: calc(var(--nav-h) + 72px);
+  }
+  .phase + .phase {
+    padding-top: clamp(40px, 6vw, 96px);
+    border-top: 1px solid var(--line);
+  }
+  .phase__head {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+  }
+  .phase__num {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+  }
+  .phase__title {
+    font-size: clamp(56px, 9vw, 168px);
+    font-weight: 300;
+    letter-spacing: -0.06em;
+    line-height: 0.85;
+  }
+
+
+  /* Interlude */
+  .interlude {
+    display: grid;
+    gap: clamp(48px, 6vw, 96px);
+    padding-block: clamp(80px, 10vw, 160px);
+    border-top: 1px solid var(--line);
+  }
+  .interlude__lead {
+    max-width: 24ch;
+    margin-inline: auto;
+    font-size: clamp(30px, 4vw, 68px);
+    font-weight: 300;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    text-align: center;
+  }
+  .interlude__lead .serif {
+    color: var(--accent);
+  }
+  .interlude__screens {
+    max-width: 1100px;
+  }
+
+</style>

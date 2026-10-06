@@ -1,0 +1,285 @@
+---
+import { Picture } from 'astro:assets';
+import { otherWorks } from '../data/content';
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const imgProps = {
+  widths: [480, 800],
+  sizes: '(min-width: 1024px) 400px, 92vw',
+  formats: ['avif', 'webp'] as const,
+  fallbackFormat: 'jpg' as const,
+  loading: 'lazy' as const,
+  decoding: 'async' as const,
+};
+---
+
+<section class="other section" id="other" data-section="work" data-other>
+  <div class="container">
+    <header class="other__head">
+      <p class="label" data-reveal="fade-up">
+        <span class="label__index">04</span><span class="label__rule"></span><span>More projects</span>
+      </p>
+      <h2 class="section-title" data-split-lines>Other <span class="serif">work</span></h2>
+    </header>
+
+    <ul class="other__list" data-other-list>
+      {
+        otherWorks.map((o, i) => (
+          <li class="item" data-item={i}>
+            <button
+              class="item__row"
+              type="button"
+              aria-expanded="false"
+              aria-controls={`other-${i}`}
+              data-item-toggle
+              data-cursor="Open"
+            >
+              <span class="item__num">{pad(i + 1)}</span>
+              <span class="item__title">{o.title}</span>
+              <span class="item__tag">{o.tag}</span>
+              <span class="item__icon" aria-hidden="true">
+                <span />
+                <span />
+              </span>
+            </button>
+            <div class="item__panel" id={`other-${i}`} role="region" aria-label={o.title}>
+              <div class="item__panel-clip">
+                <div class="item__panel-inner">
+                  <div class="item__thumb">
+                    <Picture src={o.image} alt={`${o.title} — interface preview`} {...imgProps} />
+                  </div>
+                  <p class="item__text">{o.text}</p>
+                </div>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <div class="preview" data-preview aria-hidden="true">
+    <div class="preview__frame" data-preview-frame>
+      {
+        otherWorks.map((o) => (
+          <div class="preview__img" data-preview-img>
+            <Picture src={o.image} alt="" {...imgProps} />
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .other__head {
+    display: grid;
+    gap: 28px;
+    margin-bottom: clamp(40px, 5vw, 80px);
+  }
+  .other__head .serif {
+    color: var(--accent);
+  }
+  .other__list {
+    border-top: 1px solid var(--line-strong);
+  }
+  .item {
+    border-bottom: 1px solid var(--line);
+  }
+  .item__row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 32px;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: clamp(22px, 2.4vw, 34px) 0;
+    text-align: left;
+    transition: opacity 0.4s ease;
+  }
+  .item__num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-3);
+    transition: color 0.4s ease;
+  }
+  .item__title {
+    font-size: clamp(22px, 2.6vw, 44px);
+    font-weight: 400;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .item__tag {
+    display: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg-2);
+  }
+  .item__icon {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    transition: background-color 0.4s ease, border-color 0.4s ease, transform 0.6s var(--ease-out);
+  }
+  .item__icon span {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 11px;
+    height: 1.2px;
+    margin: -0.6px 0 0 -5.5px;
+    background: var(--fg);
+    transition: transform 0.5s var(--ease-out), background-color 0.4s ease;
+  }
+  .item__icon span:last-child {
+    transform: rotate(90deg);
+  }
+
+  /* Dim siblings on hover (desktop) */
+  @media (hover: hover) {
+    .other__list:hover .item__row {
+      opacity: 0.38;
+    }
+    .other__list:hover .item__row:hover,
+    .other__list .item.is-open .item__row {
+      opacity: 1;
+    }
+    .item__row:hover .item__title {
+      transform: translateX(14px);
+    }
+  }
+  .item__row:hover .item__num,
+  .item.is-open .item__num {
+    color: var(--accent);
+  }
+  .item.is-open .item__icon {
+    background: var(--fg);
+    border-color: var(--fg);
+    transform: rotate(180deg);
+  }
+  .item.is-open .item__icon span {
+    background: var(--bg);
+  }
+  .item.is-open .item__icon span:last-child {
+    transform: rotate(0deg);
+  }
+
+  .item__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.7s var(--ease-out);
+  }
+  .item.is-open .item__panel {
+    grid-template-rows: 1fr;
+  }
+  .item__panel-clip {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .item__panel-inner {
+    display: grid;
+    gap: 20px;
+    padding: 0 0 clamp(24px, 3vw, 40px);
+    opacity: 0;
+    transform: translateY(-12px);
+    transition: opacity 0.5s ease, transform 0.7s var(--ease-out);
+  }
+  .item.is-open .item__panel-inner {
+    opacity: 1;
+    transform: none;
+    transition-delay: 0.12s;
+  }
+  .item__thumb {
+    overflow: hidden;
+    border-radius: 14px;
+    aspect-ratio: 980 / 800;
+    background: var(--surface);
+  }
+  .item__thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .item__text {
+    color: var(--fg-2);
+    max-width: 56ch;
+  }
+
+  /* Cursor-follow preview */
+  .preview {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .item__row {
+      grid-template-columns: 64px minmax(0, 1fr) minmax(0, 260px) 32px;
+    }
+    .item__tag {
+      display: block;
+    }
+    .item__panel-inner {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      padding-left: 80px;
+      align-items: end;
+    }
+    .item__thumb {
+      display: none;
+    }
+    .item__text {
+      grid-column: 1;
+      font-size: 17px;
+    }
+  }
+
+  @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+    :global(.preview-ready) .preview {
+      display: block;
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 60;
+      width: 400px;
+      aspect-ratio: 980 / 800;
+      pointer-events: none;
+    }
+    .preview__frame {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      clip-path: inset(50% 50% 50% 50% round 16px);
+      transition: clip-path 0.6s var(--ease-out);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+    }
+    :global(.preview-on) .preview__frame {
+      clip-path: inset(0 0 0 0 round 16px);
+    }
+    .preview__img {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transform: scale(1.12);
+      transition: opacity 0.4s ease, transform 0.8s var(--ease-out);
+    }
+    .preview__img.is-active {
+      opacity: 1;
+      transform: none;
+    }
+    .preview__img :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+  @media (max-width: 1023px), (hover: none) {
+    .item__thumb {
+      display: block;
+    }
+  }
+</style>

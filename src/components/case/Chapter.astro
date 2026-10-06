@@ -1,0 +1,22 @@
+---
+interface Props {
+  id: string;
+  num: string;
+  label: string;
+}
+const { id, num, label } = Astro.props;
+---
+
+<section class="chapter" id={id} data-chapter={label} aria-labelledby={`${id}-label`}>
+  <div class="container chapter__grid">
+    <aside class="chapter__aside">
+      <p class="chapter__sticky" id={`${id}-label`}>
+        <span class="chapter__num">{num}</span>
+        <span class="chapter__label">{label}</span>
+      </p>
+    </aside>
+    <div class="chapter__main">
+      <slot />
+    </div>
+  </div>
+</section>

@@ -1,0 +1,141 @@
+---
+import { experience } from '../data/content';
+---
+
+<section class="exp section" id="experience" data-section="experience">
+  <div class="container">
+    <header class="exp__head">
+      <p class="label" data-reveal="fade-up">
+        <span class="label__index">03</span><span class="label__rule"></span><span>Experience</span>
+      </p>
+      <h2 class="section-title" data-split-lines>
+        Nine years of<br /><span class="serif">untangling</span> things
+      </h2>
+    </header>
+
+    <ol class="exp__list">
+      {
+        experience.map((e) => (
+          <li class="role" data-role>
+            <span class="role__rule" aria-hidden="true" />
+            <div class="role__period">
+              {e.period}
+            </div>
+            <div class="role__who">
+              <h3 class="role__company">{e.company}</h3>
+              <p class="role__title">{e.role}</p>
+            </div>
+            <div class="role__what">
+              <p class="role__text">{e.text}</p>
+              <ul class="role__tags">
+                {e.tags.map((t) => (
+                  <li class="chip">{t}</li>
+                ))}
+              </ul>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .exp__head {
+    display: grid;
+    gap: 28px;
+    margin-bottom: clamp(48px, 6vw, 96px);
+  }
+  .exp__head .serif {
+    color: var(--accent);
+  }
+  .exp__list {
+    position: relative;
+  }
+  .role {
+    position: relative;
+    display: grid;
+    gap: 14px 32px;
+    padding: clamp(28px, 3vw, 44px) 0;
+    isolation: isolate;
+  }
+  .role:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .role__rule {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: var(--line-strong);
+    transform-origin: 0 50%;
+  }
+  .role::before {
+    content: '';
+    position: absolute;
+    inset: 0 calc(var(--gutter) * -0.5);
+    z-index: -1;
+    border-radius: 16px;
+    background: linear-gradient(90deg, rgba(111, 91, 255, 0.1), rgba(111, 91, 255, 0));
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .role:hover::before {
+    opacity: 1;
+  }
+  .role__period {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    padding-top: 0.9em;
+  }
+  .role__company {
+    font-size: clamp(30px, 3.4vw, 56px);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 1.05;
+    transition: transform 0.6s var(--ease-out), color 0.4s ease;
+  }
+  .role:hover .role__company {
+    transform: translateX(10px);
+    color: #fff;
+  }
+  .role__title {
+    margin-top: 6px;
+    color: var(--fg-2);
+    transition: transform 0.6s var(--ease-out) 0.04s;
+  }
+  .role:hover .role__title {
+    transform: translateX(10px);
+  }
+  .role__what {
+    display: grid;
+    gap: 16px;
+    padding-top: 0.6em;
+  }
+  .role__text {
+    color: var(--fg-2);
+    font-size: clamp(15px, 1.05vw, 17px);
+    max-width: 52ch;
+  }
+  .role__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (min-width: 1024px) {
+    .exp__head {
+      grid-template-columns: 1fr;
+    }
+    .role {
+      grid-template-columns: minmax(0, 2.2fr) minmax(0, 4.6fr) minmax(0, 5fr);
+    }
+  }
+</style>

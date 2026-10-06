@@ -1,0 +1,182 @@
+---
+import { Picture, getImage } from 'astro:assets';
+
+interface Props {
+  src: ImageMetadata;
+  alt: string;
+  caption?: string;
+  /** Responsive sizes hint; defaults to the text column width. */
+  sizes?: string;
+  widths?: number[];
+  /** Click to open a larger version in the lightbox. */
+  zoom?: boolean;
+  /** Force an aspect ratio, e.g. "21 / 9" (image is cropped with object-fit). */
+  ratio?: string;
+  fit?: 'cover' | 'contain';
+  /** Subtle parallax drift inside the frame. */
+  parallax?: boolean;
+  /** Background behind transparent / contained images. */
+  bg?: string;
+  eager?: boolean;
+  /** No background, radius or border — for transparent cut-out images. */
+  bare?: boolean;
+  class?: string;
+}
+
+const {
+  src,
+  alt,
+  caption,
+  sizes = '(min-width: 1024px) 60vw, 92vw',
+  widths = [480, 800, 1200, 1600],
+  zoom = false,
+  ratio,
+  fit = 'cover',
+  parallax = false,
+  bg,
+  eager = false,
+  bare = false,
+  class: cls,
+} = Astro.props;
+
+const usable = widths.filter((w) => w <= src.width);
+const full = zoom ? await getImage({ src, width: Math.min(src.width, 2400), format: 'webp', quality: 82 }) : null;
+const Frame = zoom ? 'button' : 'div';
+const frameStyle = [ratio && `aspect-ratio:${ratio}`, bg && `background:${bg}`].filter(Boolean).join(';');
+---
+
+<figure class:list={['fig', cls, { 'fig--ratio': ratio, 'fig--contain': fit === 'contain', 'fig--bare': bare }]} data-figure>
+  <Frame
+    class="fig__frame"
+    style={frameStyle || undefined}
+    type={zoom ? 'button' : undefined}
+    data-zoom={full?.src}
+    data-zoom-alt={zoom ? alt : undefined}
+    data-zoom-caption={zoom ? caption : undefined}
+    data-cursor={zoom ? 'Zoom' : undefined}
+    aria-label={zoom ? `Enlarge image: ${alt}` : undefined}
+  >
+    <div class="fig__inner" data-parallax={parallax ? '' : undefined}>
+      <Picture
+        src={src}
+        alt={alt}
+        widths={usable.length ? usable : [src.width]}
+        sizes={sizes}
+        formats={['avif', 'webp']}
+        fallbackFormat="jpg"
+        loading={eager ? 'eager' : 'lazy'}
+        fetchpriority={eager ? 'high' : undefined}
+        decoding="async"
+      />
+    </div>
+    {zoom && (
+      <span class="fig__badge" aria-hidden="true">
+        <svg viewBox="0 0 16 16"><path d="M10 2h4v4M14 2l-5 5M6 14H2v-4M2 14l5-5" /></svg>
+      </span>
+    )}
+  </Frame>
+  {caption && <figcaption class="fig__caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  .fig {
+    display: grid;
+    gap: 14px;
+  }
+  .fig__frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--surface);
+    isolation: isolate;
+    text-align: left;
+  }
+  .fig__frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(241, 241, 241, 0.08);
+    pointer-events: none;
+  }
+  .fig__inner {
+    position: relative;
+  }
+  .fig--bare .fig__frame {
+    background: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .fig--bare .fig__frame::after {
+    display: none;
+  }
+  .fig__inner :global(img) {
+    width: 100%;
+    height: auto;
+  }
+  .fig--ratio .fig__inner {
+    position: absolute;
+    inset: 0;
+  }
+  .fig--ratio .fig__inner[data-parallax] {
+    inset: -8% 0;
+  }
+  .fig--ratio .fig__inner :global(picture),
+  .fig--ratio .fig__inner :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+  .fig--ratio .fig__inner :global(img) {
+    object-fit: cover;
+  }
+  .fig--contain .fig__inner :global(img) {
+    object-fit: contain;
+  }
+  button.fig__frame {
+    cursor: zoom-in;
+  }
+  button.fig__frame :global(img) {
+    transition: transform 1s var(--ease-out);
+  }
+  button.fig__frame:hover :global(img) {
+    transform: scale(1.02);
+  }
+  .fig__badge {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(8, 5, 15, 0.7);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    opacity: 0.85;
+    transition: transform 0.5s var(--ease-out), opacity 0.3s ease;
+  }
+  button.fig__frame:hover .fig__badge {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  .fig__badge svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: var(--fg);
+    stroke-width: 1.4;
+  }
+  .fig__caption {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+    line-height: 1.6;
+  }
+</style>

@@ -1,0 +1,246 @@
+---
+import { closing, site } from '../data/content';
+const year = new Date().getFullYear();
+---
+
+<footer class="contact" id="contact" data-section="contact">
+  <div class="contact__grid" aria-hidden="true"></div>
+  <div class="contact__glow" aria-hidden="true"></div>
+
+  <div class="container contact__inner">
+    <p class="label" data-reveal="fade-up">
+      <span class="label__index">06</span><span class="label__rule"></span><span>Contact</span>
+    </p>
+
+    <h2 class="contact__title" data-split-lines>
+      {closing.lines[0]}<br />
+      work feel <span class="serif">simple.</span>
+    </h2>
+
+    <div class="contact__row">
+      <a class="orb" href={site.linkedin} target="_blank" rel="noopener" data-magnetic="0.45" data-cursor-hide>
+        <span class="orb__fill" aria-hidden="true"></span>
+        <span class="orb__label">Get in<br />touch</span>
+        <svg class="orb__arrow" viewBox="0 0 14 14" aria-hidden="true">
+          <path d="M3 11 L11 3 M5 3 H11 V9" fill="none" stroke="currentColor" stroke-width="1.2"></path>
+        </svg>
+      </a>
+
+      <div class="contact__links" data-reveal="fade-up">
+        <a href={site.linkedin} target="_blank" rel="noopener" class="contact__link">
+          <span class="contact__link-k">LinkedIn</span>
+          <span class="contact__link-v">/in/terry-productdesigner ↗</span>
+        </a>
+        <a href={site.resume} target="_blank" rel="noopener" class="contact__link">
+          <span class="contact__link-k">Résumé</span>
+          <span class="contact__link-v">Google Docs ↗</span>
+        </a>
+        <div class="contact__link">
+          <span class="contact__link-k">Based in</span>
+          <span class="contact__link-v">{site.location} — <span data-clock>GMT+8</span></span>
+        </div>
+      </div>
+    </div>
+
+    <p class="contact__quote" data-reveal="fade-up">{closing.quote}</p>
+  </div>
+
+  <div class="container contact__bottom">
+    <span>© {year} {site.name}</span>
+    <span class="contact__made">Designed by Terry, built with care.</span>
+    <a href="#top" class="contact__top">
+      <span class="roll"><span class="roll__inner" data-text="Back to top ↑">Back to top ↑</span></span>
+    </a>
+  </div>
+
+  <div class="wordmark" aria-hidden="true" data-wordmark>
+    <span>Terry</span><span class="serif">Wu</span>
+  </div>
+</footer>
+
+<style>
+  .contact {
+    position: relative;
+    z-index: 1;
+    padding-top: clamp(120px, 16vw, 240px);
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+  }
+  .contact__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(241, 241, 241, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(241, 241, 241, 0.05) 1px, transparent 1px);
+    background-size: 84px 84px;
+    background-position: center top;
+    mask-image: radial-gradient(70% 60% at 50% 40%, #000 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(70% 60% at 50% 40%, #000 20%, transparent 80%);
+    pointer-events: none;
+  }
+  .contact__glow {
+    position: absolute;
+    left: 50%;
+    bottom: -30%;
+    width: min(1400px, 140vw);
+    height: 80%;
+    transform: translateX(-50%);
+    background: radial-gradient(50% 50% at 50% 50%, rgba(73, 40, 220, 0.45), rgba(73, 40, 220, 0) 70%);
+    pointer-events: none;
+  }
+  .contact__inner {
+    position: relative;
+    display: grid;
+    gap: clamp(32px, 4vw, 56px);
+  }
+  .contact__title {
+    font-size: clamp(48px, 9vw, 168px);
+    font-weight: 400;
+    letter-spacing: -0.055em;
+    line-height: 0.95;
+  }
+  .contact__title .serif {
+    color: var(--accent);
+  }
+  .contact__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(32px, 6vw, 120px);
+    margin-top: clamp(8px, 2vw, 24px);
+  }
+
+  .orb {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: clamp(140px, 13vw, 200px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--accent-2);
+    color: #fff;
+    font-size: clamp(17px, 1.4vw, 22px);
+    line-height: 1.1;
+    text-align: center;
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 20px 80px rgba(111, 91, 255, 0.45);
+  }
+  .orb__fill {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 50%;
+    background: var(--fg);
+    transform: scale(0);
+    transition: transform 0.7s var(--ease-out);
+  }
+  .orb:hover .orb__fill,
+  .orb:focus-visible .orb__fill {
+    transform: scale(1.02);
+  }
+  .orb:hover,
+  .orb:focus-visible {
+    color: var(--bg);
+  }
+  .orb__label {
+    transition: color 0.4s ease;
+  }
+  .orb__arrow {
+    position: absolute;
+    right: 22%;
+    top: 22%;
+    width: 14px;
+    height: 14px;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .orb:hover .orb__arrow {
+    transform: translate(3px, -3px);
+  }
+
+  .contact__links {
+    display: grid;
+    gap: 0;
+    min-width: min(100%, 420px);
+  }
+  .contact__link {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+  }
+  .contact__link-k {
+    color: var(--fg-3);
+  }
+  .contact__link-v {
+    color: var(--fg);
+    transition: color 0.3s ease;
+  }
+  a.contact__link:hover .contact__link-v {
+    color: var(--accent);
+  }
+
+  .contact__quote {
+    max-width: 34ch;
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(22px, 2vw, 32px);
+    line-height: 1.25;
+    color: var(--fg-2);
+    margin-top: clamp(24px, 4vw, 64px);
+  }
+
+  .contact__bottom {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-top: clamp(80px, 10vw, 160px);
+    padding-block: 24px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .contact__top {
+    color: var(--fg-2);
+  }
+  .contact__made {
+    display: none;
+  }
+
+  .wordmark {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    gap: 0.12em;
+    padding-inline: var(--gutter);
+    margin-bottom: -0.2em;
+    font-size: clamp(80px, 23.5vw, 420px);
+    font-weight: 500;
+    letter-spacing: -0.065em;
+    line-height: 0.82;
+    white-space: nowrap;
+    user-select: none;
+    background: linear-gradient(180deg, rgba(241, 241, 241, 0.92) 10%, rgba(241, 241, 241, 0.06) 92%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .wordmark .serif {
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    padding-right: 0.06em;
+  }
+
+  @media (min-width: 900px) {
+    .contact__made {
+      display: inline;
+    }
+  }
+</style>

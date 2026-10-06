@@ -1,0 +1,52 @@
+---
+import '../styles/global.css';
+import outfitLatin from '@fontsource-variable/outfit/files/outfit-latin-wght-normal.woff2?url';
+import { site } from '../data/content';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Root-relative path to a share image; defaults to the homepage one. */
+  image?: string;
+}
+
+const { title = site.title, description = site.description, image } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image ?? `${base}/og.jpg`, Astro.site);
+---
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#08050f" />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={`${base}/favicon.svg`} type="image/svg+xml" />
+    <link rel="preload" href={outfitLatin} as="font" type="font/woff2" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <script is:inline>
+      document.documentElement.classList.replace('no-js', 'js');
+      setTimeout(function () {
+        if (!window.__ready) document.documentElement.classList.add('no-anim');
+      }, 3500);
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="ambient" aria-hidden="true"></div>
+    <div class="guides" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <slot />
+    <div class="grain" aria-hidden="true"></div>
+  </body>
+</html>

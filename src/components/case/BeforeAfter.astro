@@ -1,0 +1,289 @@
+---
+import { Picture } from 'astro:assets';
+
+interface Shot {
+  src: ImageMetadata;
+  alt: string;
+  crumb: string[];
+}
+interface Item {
+  id: string;
+  label: string;
+  before: Shot[];
+  after: Shot;
+  /** e.g. "Direct completion 3/8 → 8/8" */
+  stat?: string;
+}
+interface Props {
+  items: Item[];
+}
+const { items } = Astro.props;
+const imgProps = {
+  widths: [800, 1200, 1800],
+  sizes: '(min-width: 1024px) 70vw, 94vw',
+  formats: ['avif', 'webp'] as const,
+  fallbackFormat: 'jpg' as const,
+  loading: 'lazy' as const,
+  decoding: 'async' as const,
+};
+---
+
+<div class="ba" data-ba>
+  <div class="ba__tabs" role="tablist" aria-label="Task">
+    {
+      items.map((it, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`ba-tab-${it.id}`}
+          aria-controls={`ba-panel-${it.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          class:list={['ba__tab', { 'is-active': i === 0 }]}
+          data-ba-tab={it.id}
+        >
+          {it.label}
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    items.map((it, i) => (
+      <div
+        class:list={['ba__panel', { 'is-active': i === 0 }]}
+        id={`ba-panel-${it.id}`}
+        role="tabpanel"
+        aria-labelledby={`ba-tab-${it.id}`}
+        data-ba-panel={it.id}
+        data-state="before"
+      >
+        <div class="ba__bar">
+          <div class="ba__switch" role="group" aria-label="Version">
+            <button type="button" class="ba__seg is-on" aria-pressed="true" data-ba-set="before">
+              Before
+            </button>
+            <button type="button" class="ba__seg" aria-pressed="false" data-ba-set="after">
+              After
+            </button>
+            <span class="ba__thumb" aria-hidden="true" />
+          </div>
+          <p class="ba__crumbs">
+            <span class="ba__crumb ba__crumb--before">
+              {it.before.map((b, k) => (
+                <span class="ba__path">
+                  {it.before.length > 1 && <b>{k + 1}</b>}
+                  {b.crumb.join(' › ')}
+                </span>
+              ))}
+            </span>
+            <span class="ba__crumb ba__crumb--after">
+              <span class="ba__path">{it.after.crumb.join(' › ')}</span>
+            </span>
+          </p>
+        </div>
+
+        <div class="ba__stage">
+          <div class:list={['ba__layer', 'ba__layer--before', { 'ba__layer--split': it.before.length > 1 }]}>
+            {it.before.map((b) => (
+              <div class="ba__shot">
+                <Picture src={b.src} alt={b.alt} {...imgProps} />
+              </div>
+            ))}
+          </div>
+          <div class="ba__layer ba__layer--after">
+            <div class="ba__shot">
+              <Picture src={it.after.src} alt={it.after.alt} {...imgProps} />
+            </div>
+          </div>
+        </div>
+        {it.stat && <p class="ba__stat">{it.stat}</p>}
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .ba {
+    display: grid;
+    gap: 16px;
+  }
+  .ba__tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .ba__tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .ba__tab {
+    flex: none;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--fg-2);
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  }
+  .ba__tab:hover {
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+  .ba__tab.is-active {
+    color: var(--bg);
+    background: var(--fg);
+    border-color: var(--fg);
+  }
+
+  .ba__panel {
+    display: none;
+    gap: 14px;
+  }
+  .ba__panel.is-active {
+    display: grid;
+  }
+  .ba__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+  }
+  .ba__switch {
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(241, 241, 241, 0.06);
+    border: 1px solid var(--line);
+    isolation: isolate;
+  }
+  .ba__seg {
+    position: relative;
+    z-index: 1;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    color: var(--fg-2);
+    transition: color 0.4s ease;
+  }
+  .ba__seg.is-on {
+    color: var(--bg);
+  }
+  .ba__thumb {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(50% - 4px);
+    border-radius: 999px;
+    background: #ff9a9d;
+    transition: transform 0.5s var(--ease-out), background-color 0.4s ease;
+  }
+  .ba__panel[data-state='after'] .ba__thumb {
+    transform: translateX(100%);
+    background: var(--accent);
+  }
+  .ba__crumbs {
+    display: grid;
+    min-height: 1.5em;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+  }
+  .ba__crumb {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    transition: opacity 0.4s ease;
+  }
+  .ba__crumb--before {
+    color: #ff9a9d;
+  }
+  .ba__crumb--after {
+    color: var(--accent);
+    opacity: 0;
+  }
+  .ba__panel[data-state='after'] .ba__crumb--before {
+    opacity: 0;
+  }
+  .ba__panel[data-state='after'] .ba__crumb--after {
+    opacity: 1;
+  }
+  .ba__path b {
+    display: inline-grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    color: var(--bg);
+    font-weight: 500;
+    font-size: 10px;
+  }
+
+  .ba__stage {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #f4f3f6;
+    box-shadow: inset 0 0 0 1px rgba(241, 241, 241, 0.08);
+  }
+  .ba__layer {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    transition: opacity 0.6s ease, transform 0.9s var(--ease-out);
+  }
+  /* Two screens for one task: show them side by side, each cropped to its left/top half */
+  .ba__layer--split {
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    background: #d9d6de;
+  }
+  .ba__layer--split .ba__shot {
+    overflow: hidden;
+  }
+  .ba__layer--split .ba__shot :global(img) {
+    width: 180%;
+    max-width: none;
+    height: auto;
+    object-fit: initial;
+  }
+  .ba__layer--after {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  .ba__panel[data-state='after'] .ba__layer--after {
+    opacity: 1;
+    transform: none;
+  }
+  .ba__panel[data-state='after'] .ba__layer--before {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  .ba__shot {
+    position: relative;
+    min-width: 0;
+    background: #fff;
+  }
+  .ba__shot :global(picture),
+  .ba__shot :global(img) {
+    width: 100%;
+    height: 100%;
+  }
+  .ba__shot :global(img) {
+    object-fit: contain;
+    object-position: left top;
+  }
+  .ba__stat {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--fg-3);
+  }
+</style>

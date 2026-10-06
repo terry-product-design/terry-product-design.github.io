@@ -1,0 +1,47 @@
+---
+interface Props {
+  /** File name (without extension) inside /public/case/<slug>/ — expects .mp4 + .webp poster */
+  name: string;
+  slug: string;
+  label: string;
+  /** Alpha mask (same aspect as the video) that cuts away the baked-in corners around the device. */
+  mask?: string;
+  /** Intrinsic video size (also sets the aspect ratio). */
+  width?: number;
+  height?: number;
+}
+const { name, slug, label, mask, width = 760, height = 1051 } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+const dir = `${base}case/${slug}/`;
+---
+
+<div class="device">
+  <video
+    style={mask ? `-webkit-mask-image:url(${mask});mask-image:url(${mask})` : undefined}
+    class="device__video"
+    data-video
+    data-src={`${dir}${name}.mp4`}
+    data-poster={`${dir}${name}.webp`}
+    muted
+    loop
+    playsinline
+    preload="none"
+    width={width}
+    height={height}
+    aria-label={label}></video>
+</div>
+
+<style>
+  .device {
+    position: relative;
+  }
+  .device__video {
+    display: block;
+    width: 100%;
+    height: auto;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
+</style>

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.DS_Store
+*.log
+.env
+
+# Local Claude Code settings (skills and launch config are shared)
+.claude/settings.local.json
+
+# Working files not used by the site
+ideku-dashboard-mockup.png
