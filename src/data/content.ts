@@ -29,7 +29,7 @@ export const site = {
     'Senior Product Designer with 9 years of experience designing merchant platforms, fintech products, and professional tools. I simplify complex workflows through research, systems thinking, and product strategy.',
   linkedin: 'https://www.linkedin.com/in/terry-productdesigner',
   resume:
-    'https://docs.google.com/document/d/1zlOc0h5nrtdqxVmKv9UOwDbXhu6U9RceZKKqledvpHo/edit?usp=sharing',
+    'https://drive.google.com/file/d/1UrohJ3UI66BXtxobAFBNBddHAKHxeJWz/view?usp=sharing',
 };
 
 export const hero = {

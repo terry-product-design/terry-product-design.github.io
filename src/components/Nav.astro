@@ -49,10 +49,10 @@ const links = [
     </nav>
 
     <div class="nav__meta">
-      <a class="nav__resume" href={site.resume} target="_blank" rel="noopener">
+      <a class="btn btn--solid nav__resume" href={site.resume} target="_blank" rel="noopener">
         <span class="roll"><span class="roll__inner" data-text="Résumé ↗">Résumé ↗</span></span>
       </a>
-      <a class="btn btn--ghost nav__cta" href={site.linkedin} target="_blank" rel="noopener" data-magnetic="0.3">
+      <a class="btn nav__cta" href={site.linkedin} target="_blank" rel="noopener" data-magnetic="0.3">
         <span class="nav__dot" aria-hidden="true"></span>
         <span class="roll"><span class="roll__inner" data-text="Get in touch">Get in touch</span></span>
       </a>
@@ -197,25 +197,28 @@ const links = [
     justify-self: end;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 10px;
   }
+  /* Résumé: white pill (hover fills with the accent) */
   .nav__resume {
     display: none;
+    height: 40px;
+    padding: 0 18px;
     font-size: 14px;
-    color: var(--fg-2);
-    transition: color 0.3s ease;
   }
-  .nav__resume:hover {
-    color: var(--fg);
-  }
+  /* Get in touch: the site's violet, a slight gradient (hover fills white) */
   .nav__cta {
     height: 40px;
     padding: 0 18px;
     font-size: 14px;
     gap: 10px;
-    background: rgba(19, 17, 27, 0.55);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 24px -10px rgba(111, 91, 255, 0.7);
+  }
+  .nav__cta:hover,
+  .nav__cta:focus-visible {
+    color: var(--bg);
   }
   .nav__dot {
     width: 6px;
