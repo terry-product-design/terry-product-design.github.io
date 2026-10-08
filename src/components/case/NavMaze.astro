@@ -1,0 +1,995 @@
+---
+/**
+ * NavMaze — the old (and new) navigation drawn as a mind map.
+ * A walker tries to finish a task: every wrong turn leaves a red trail.
+ * Visitors can watch the walkthrough or try it themselves. Behaviour: src/scripts/maze.ts.
+ */
+type Nav = [string, string[]?][];
+interface Step {
+  /** top-level group */
+  g: string;
+  /** child entry inside the group */
+  c?: string;
+  /** true = the right place; 'part' = right place for part of the job */
+  ok?: boolean | 'part';
+  /** what the walker thinks before looking */
+  think: string;
+  /** what they find */
+  note: string;
+  /** index of the cause (in `whys`) this step demonstrates */
+  why?: number;
+}
+interface Run {
+  steps: Step[];
+  /** test result shown when the run ends */
+  stat: string;
+}
+interface Task {
+  id: string;
+  label: string;
+  brief: string;
+  before: Run;
+  after: Run;
+}
+interface Why {
+  title: string;
+  text: string;
+  /** how the new navigation answers it — shown when the card flips */
+  fix: { title: string; text: string };
+}
+interface Props {
+  before: Nav;
+  after: Nav;
+  tasks: Task[];
+  whys: Why[];
+}
+const { before, after, tasks, whys } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, '0');
+
+// Stage geometry (design px). The stage is scaled to fit by the script.
+const W = 1200;
+const H = 540;
+const CX = W / 2;
+const CY = H / 2;
+const GROUP_X = { r: 790, l: 410 }; // pill edge facing the root
+const KID_X = { r: 1010, l: 190 };
+const KID_GAP = 29;
+const PAD = 24;
+
+const r1 = (n: number) => Math.round(n * 10) / 10;
+const curve = (x1: number, y1: number, x2: number, y2: number) => {
+  const dx = (x2 - x1) / 2;
+  return `M${r1(x1)} ${r1(y1)} C${r1(x1 + dx)} ${r1(y1)} ${r1(x2 - dx)} ${r1(y2)} ${r1(x2)} ${r1(y2)}`;
+};
+// Rough label width, only used to start child connectors under the pill (it hides the overlap).
+const labelW = (s: string, px: number) =>
+  [...s].reduce((w, ch) => w + (ch === ' ' ? 0.28 : /[A-Z]/.test(ch) ? 0.64 : /[a-z]/.test(ch) ? 0.5 : 0.55) * px, 0) + 24;
+
+function layout(nav: Nav, gap: number) {
+  const half = Math.ceil(nav.length / 2);
+  return nav.map(([name, kids = []], i) => {
+    const side: 'r' | 'l' = i < half ? 'r' : 'l';
+    const k = side === 'r' ? i : i - half;
+    const count = side === 'r' ? half : nav.length - half;
+    const y = CY + (k - (count - 1) / 2) * gap;
+    const x = GROUP_X[side];
+    const dir = side === 'r' ? 1 : -1;
+    const exit = x + dir * labelW(name, 14) * 0.8;
+    let top = y - ((kids.length - 1) * KID_GAP) / 2;
+    top = Math.min(Math.max(top, PAD), H - PAD - (kids.length - 1) * KID_GAP);
+    return {
+      name,
+      side,
+      x,
+      y,
+      line: curve(CX, CY, x, y),
+      kids: kids.map((c, j) => {
+        const ky = top + j * KID_GAP;
+        return { name: c, x: KID_X[side], y: ky, line: curve(exit, y, KID_X[side], ky) };
+      }),
+    };
+  });
+}
+const trees = [
+  { id: 'before', nodes: layout(before, 40), label: `Old · ${before.length} groups` },
+  { id: 'after', nodes: layout(after, 48), label: `New · ${after.length} groups` },
+];
+const data = tasks.map(({ id, brief, before, after }) => ({ id, brief, before, after }));
+---
+
+<div class="mz" data-mode="before" data-maze={JSON.stringify(data)} data-maze-w={W} data-maze-h={H} data-maze-cx={CX} data-maze-cy={CY}>
+  <div class="mz__bar">
+    <div class="mz__versions" role="group" aria-label="Sidebar version">
+      <button type="button" class="mz__ver is-on" aria-pressed="true" data-mz-mode="before">
+        <span class="mz__ver-t" data-t="Old sidebar">Old sidebar</span><small>{before.length} groups</small>
+      </button>
+      <button type="button" class="mz__ver" aria-pressed="false" data-mz-mode="after">
+        <span class="mz__ver-t" data-t="New sidebar">New sidebar</span><small>{after.length} groups</small>
+      </button>
+    </div>
+    <div class="mz__actions">
+      <button type="button" class="mz__btn" data-mz-replay>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.5v2.5h2.5" /></svg>
+        Replay
+      </button>
+      <button type="button" class="mz__btn mz__btn--try" aria-pressed="false" data-mz-try>Let me try</button>
+    </div>
+  </div>
+
+  <div class="mz__frame">
+    <div class="mz__hud">
+      <div class="mz__job">
+        <div class="mz__job-k">
+          <span class="kicker">Your job</span>
+          <div class="mz__tasks" role="group" aria-label="Choose a job">
+            {
+              tasks.map((t, i) => (
+                <button type="button" class:list={['mz__task', { 'is-on': i === 0 }]} aria-pressed={i === 0 ? 'true' : 'false'} data-mz-task={i}>
+                  <span class="mz__task-n">{pad(i + 1)}</span>
+                  {t.label}
+                </button>
+              ))
+            }
+          </div>
+        </div>
+        <p class="mz__brief" data-mz-brief>{tasks[0].brief}</p>
+      </div>
+      <dl class="mz__count">
+        <div class="mz__count-wrong">
+          <dt>Wrong turns</dt>
+          <dd data-mz-wrong>0</dd>
+        </div>
+        <div>
+          <dt>Groups opened</dt>
+          <dd data-mz-opened>0</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="mz__view">
+      <div class="mz__viewport" data-mz-viewport>
+        <div class="mz__sizer" data-mz-sizer style={`width:${W}px;height:${H}px`}>
+          <div class="mz__stage" data-mz-stage style={`width:${W}px;height:${H}px`}>
+            {
+              trees.map((t) => (
+                <div class:list={['mz__tree', { 'is-active': t.id === 'before' }]} data-mz-tree={t.id} aria-hidden="true">
+                  <svg class="mz__lines" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+                    {t.nodes.map((n) => (
+                      <path class="mz__bl" d={n.line} data-line={n.name} />
+                    ))}
+                    {t.nodes.flatMap((n) =>
+                      n.kids.map((k) => <path class="mz__kl" d={k.line} data-parent={n.name} data-kline={`${n.name}>${k.name}`} />),
+                    )}
+                  </svg>
+                  <svg class="mz__trail" viewBox={`0 0 ${W} ${H}`} aria-hidden="true" data-mz-trail />
+                  {t.nodes.map((n) => (
+                    <button
+                      type="button"
+                      class="mz__node mz__node--g"
+                      data-side={n.side}
+                      data-g={n.name}
+                      style={`left:${n.x}px;top:${r1(n.y)}px`}
+                      tabindex="-1"
+                      disabled
+                    >
+                      {n.name}
+                      <i class="mz__badge" aria-hidden="true" />
+                    </button>
+                  ))}
+                  {t.nodes.flatMap((n) =>
+                    n.kids.map((k) => (
+                      <button
+                        type="button"
+                        class="mz__node mz__node--k"
+                        data-side={n.side}
+                        data-parent={n.name}
+                        data-k={`${n.name}>${k.name}`}
+                        style={`left:${k.x}px;top:${r1(k.y)}px`}
+                        tabindex="-1"
+                        disabled
+                      >
+                        {k.name}
+                        <i class="mz__badge" aria-hidden="true" />
+                      </button>
+                    )),
+                  )}
+                  <span class="mz__root" style={`left:${CX}px;top:${CY}px`}>
+                    <b>IDEKU</b>
+                    <small>{t.label}</small>
+                  </span>
+                </div>
+              ))
+            }
+            <span class="mz__walker" data-mz-walker aria-hidden="true" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mz__bottom">
+    <div class="mz__foot">
+      <p class="mz__say" data-mz-say aria-live="polite">Scroll on — someone is about to try it in the old back office.</p>
+      <div class="mz__out" data-mz-out>
+        <p class="mz__stat" data-mz-stat></p>
+        <button type="button" class="mz__next" data-mz-next>Now try the new sidebar →</button>
+      </div>
+    </div>
+
+    <section class="mz__why" aria-label="Why it was a maze, and what changed">
+      <div class="mz__why-head">
+        <p class="kicker mz__why-title">
+          <span class="mz__where-before">Why it’s a maze</span>
+          <span class="mz__where-after">What changed</span>
+          <span class="mz__why-n">{whys.length}</span>
+        </p>
+        <div class="mz__why-nav">
+          <button type="button" class="mz__arrow" aria-label="Previous" data-mz-why-step="-1">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" /></svg>
+          </button>
+          <button type="button" class="mz__arrow" aria-label="Next" data-mz-why-step="1">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" /></svg>
+          </button>
+        </div>
+      </div>
+      <ol class="mz__cards" data-mz-cards>
+        {
+          whys.map((w, i) => (
+            <li class="mz__card" style={`--i:${i}`} data-mz-card={i}>
+              <div class="mz__face mz__face--before">
+                <span class="mz__card-n">{pad(i + 1)}</span>
+                <h4>{w.title}</h4>
+                <p>{w.text}</p>
+              </div>
+              <div class="mz__face mz__face--after">
+                <span class="mz__card-n">{pad(i + 1)}</span>
+                <h4>{w.fix.title}</h4>
+                <p>{w.fix.text}</p>
+              </div>
+              <span class="mz__card-tag" aria-hidden="true">
+                <span class="mz__where-before">Just hit this</span>
+                <span class="mz__where-after">Fixed here</span>
+              </span>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+    </div>
+  </div>
+</div>
+
+<style>
+  .mz {
+    display: grid;
+    --red: #e5484d;
+    --red-soft: #ff9a9d;
+    --amber: #e0a33a;
+    --node-bg: #120f1c;
+    --mode: var(--red-soft);
+    --mode-line: rgba(229, 72, 77, 0.4);
+    --mode-glow: rgba(229, 72, 77, 0.12);
+  }
+  .mz[data-mode='after'] {
+    --mode: var(--accent);
+    --mode-line: rgba(155, 140, 255, 0.45);
+    --mode-glow: rgba(111, 91, 255, 0.16);
+  }
+  /* Copy that differs per version */
+  .mz[data-mode='before'] .mz__where-after,
+  .mz[data-mode='after'] .mz__where-before {
+    display: none;
+  }
+
+  /* ---------- Job picker ---------- */
+  .mz__tasks {
+    display: flex;
+    gap: 4px 24px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mz__tasks::-webkit-scrollbar {
+    display: none;
+  }
+  .mz__task {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    padding: 6px 0 7px;
+    font-size: 14px;
+    color: var(--fg-3);
+    transition: color 0.3s ease;
+  }
+  .mz__task::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1.5px;
+    border-radius: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 0.45s var(--ease-out);
+  }
+  .mz__task:hover {
+    color: var(--fg-2);
+  }
+  .mz__task.is-on {
+    color: var(--fg);
+  }
+  .mz__task.is-on::after {
+    transform: none;
+  }
+  .mz__task-n {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    opacity: 0.7;
+  }
+
+  /* ---------- Frame ---------- */
+  .mz__frame {
+    position: relative;
+    border-radius: var(--radius);
+    border: 1px solid var(--mode-line);
+    background:
+      radial-gradient(70% 40% at 50% 0%, var(--mode-glow), transparent 70%),
+      radial-gradient(60% 70% at 50% 50%, rgba(111, 91, 255, 0.08), transparent 70%),
+      radial-gradient(rgba(241, 241, 241, 0.07) 1px, transparent 1.3px) 0 0 / 22px 22px,
+      linear-gradient(180deg, #110e19, #0b0912);
+    overflow: hidden;
+    transition: border-color 0.5s ease;
+  }
+
+  .mz__hud {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px 32px;
+    padding: 16px clamp(18px, 2.4vw, 36px) 0;
+  }
+  .mz__job {
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    flex: 1 1 520px;
+  }
+  .mz__job-k {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+  .mz__job-k .kicker {
+    flex: none;
+  }
+  @media (max-width: 559px) {
+    .mz__job-k {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+  }
+  .mz__brief {
+    max-width: 60ch;
+    font-size: clamp(17px, 1.4vw, 22px);
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+  }
+  .mz__count {
+    display: flex;
+    gap: 28px;
+  }
+  .mz__count div {
+    display: grid;
+    gap: 4px;
+  }
+  .mz__count dt {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-3);
+  }
+  .mz__count dd {
+    font-size: clamp(28px, 2.4vw, 38px);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .mz__count-wrong dd {
+    color: var(--red-soft);
+  }
+  .mz__count dd.is-bump {
+    animation: mz-bump 0.5s var(--ease-out);
+  }
+  @keyframes mz-bump {
+    30% {
+      transform: scale(1.35);
+      color: var(--red);
+    }
+  }
+
+  /* ---------- Stage ---------- */
+  .mz__view {
+    position: relative;
+  }
+  .mz__viewport {
+    position: relative;
+    overflow: hidden;
+  }
+  .mz.is-pan .mz__viewport {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-mask: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+    mask: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  }
+  .mz__viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .mz__sizer {
+    position: relative;
+    margin: 0 auto;
+  }
+  .mz__stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
+  }
+  .mz__tree {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0s linear 0.5s;
+  }
+  .mz__tree.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease;
+  }
+  .mz__lines,
+  .mz__trail {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+  .mz__lines path {
+    fill: none;
+    stroke: rgba(241, 241, 241, 0.13);
+    stroke-width: 1.2;
+  }
+  .mz__kl {
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .mz__kl.is-shown {
+    opacity: 1;
+  }
+  .mz__trail :global(.mz__seg) {
+    fill: none;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    transition: stroke 0.4s ease, opacity 0.4s ease;
+  }
+  .mz__trail :global(.is-probe) {
+    stroke: rgba(241, 241, 241, 0.85);
+  }
+  .mz__trail :global(.is-wrong) {
+    stroke: var(--red);
+    opacity: 0.75;
+  }
+  .mz__trail :global(.is-ok) {
+    stroke: var(--accent);
+    filter: drop-shadow(0 0 6px rgba(155, 140, 255, 0.85));
+  }
+  .mz__trail :global(.is-part) {
+    stroke: var(--amber);
+  }
+
+  .mz__root {
+    position: absolute;
+    display: grid;
+    justify-items: center;
+    gap: 2px;
+    padding: 12px 22px;
+    transform: translate(-50%, -50%);
+    border-radius: 999px;
+    background: var(--accent-2);
+    color: #fff;
+    box-shadow: 0 0 0 6px rgba(111, 91, 255, 0.16), 0 0 60px rgba(111, 91, 255, 0.55);
+  }
+  .mz__root b {
+    font-weight: 500;
+    font-size: 16px;
+    letter-spacing: 0.02em;
+  }
+  .mz__root small {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  .mz__node {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transform: translate(0, -50%);
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    background: var(--node-bg);
+    font-size: 14px;
+    line-height: 20px;
+    white-space: nowrap;
+    color: var(--fg-2);
+    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease, opacity 0.35s ease,
+      visibility 0s;
+  }
+  .mz__node[data-side='l'] {
+    transform: translate(-100%, -50%);
+  }
+  .mz__node:disabled {
+    cursor: default;
+  }
+  .mz.is-manual .mz__node:not(:disabled):hover {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+  .mz__node--k {
+    padding: 3px 10px;
+    font-size: 12.5px;
+    line-height: 18px;
+    opacity: 0;
+    visibility: hidden;
+    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease, opacity 0.3s ease, visibility 0s linear 0.3s;
+  }
+  .mz__node--k.is-shown {
+    opacity: 1;
+    visibility: visible;
+    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+  }
+  .mz__node.is-open {
+    color: var(--fg);
+    border-color: rgba(241, 241, 241, 0.6);
+  }
+  .mz__node.is-wrong {
+    color: var(--red-soft);
+    border-color: rgba(229, 72, 77, 0.7);
+    background: #210f17;
+  }
+  .mz__node.is-part {
+    color: #ffd28a;
+    border-color: var(--amber);
+    background: #23190c;
+  }
+  .mz__node.is-found {
+    color: #fff;
+    border-color: var(--accent);
+    background: #241a52;
+    box-shadow: 0 0 0 5px rgba(111, 91, 255, 0.2), 0 0 28px rgba(111, 91, 255, 0.45);
+  }
+
+  /* What was found inside a folded group */
+  .mz__node :global(.mz__hit) {
+    display: none;
+    font-size: 12.5px;
+    opacity: 0.85;
+  }
+  .mz__node:not(.is-open) :global(.mz__hit) {
+    display: inline;
+  }
+
+  .mz__badge {
+    display: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    font-style: normal;
+    font-size: 9px;
+    line-height: 14px;
+    text-align: center;
+    color: #fff;
+  }
+  .is-wrong > .mz__badge,
+  .is-part > .mz__badge,
+  .is-found > .mz__badge {
+    display: inline-block;
+  }
+  .is-wrong > .mz__badge {
+    background: var(--red);
+  }
+  .is-wrong > .mz__badge::before {
+    content: '✕';
+  }
+  .is-part > .mz__badge {
+    background: var(--amber);
+  }
+  .is-found > .mz__badge {
+    background: var(--accent-2);
+  }
+  .is-part > .mz__badge::before,
+  .is-found > .mz__badge::before {
+    content: '✓';
+  }
+
+  .mz__walker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 14px;
+    height: 14px;
+    margin: -7px 0 0 -7px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.14), 0 0 22px 6px rgba(155, 140, 255, 0.75);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ---------- Narration + result | cause cards ---------- */
+  .mz__bottom {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .mz__foot {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding: 18px clamp(18px, 2.4vw, 36px);
+  }
+  @media (min-width: 1100px) {
+    .mz__bottom {
+      grid-template-columns: minmax(280px, 0.85fr) minmax(0, 2fr);
+    }
+    .mz__why {
+      border-top: 0;
+      border-left: 1px solid var(--line);
+    }
+  }
+  .mz__say {
+    min-height: 2.9em;
+    max-width: 70ch;
+    font-size: clamp(16px, 1.25vw, 20px);
+    line-height: 1.45;
+    color: var(--fg-2);
+    text-wrap: pretty;
+  }
+  .mz__say :global(.mz__think) {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.12em;
+    color: var(--fg);
+  }
+  .mz__say :global(.mz__note) {
+    color: var(--fg);
+  }
+  .mz__out {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.5s ease, transform 0.6s var(--ease-out), visibility 0s linear 0.5s;
+  }
+  .mz__out.is-on {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition: opacity 0.5s ease, transform 0.6s var(--ease-out);
+  }
+  .mz__stat {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    color: var(--fg-2);
+  }
+  .mz__stat :global(b) {
+    font-weight: 500;
+    color: var(--fg);
+  }
+  .mz__next {
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: var(--fg);
+    font-size: 14px;
+    color: var(--bg);
+    transition: background-color 0.3s ease;
+  }
+  .mz__next:hover {
+    background: #fff;
+  }
+
+  /* ---------- Version tabs: attached to the frame, so they label everything inside it ---------- */
+  .mz__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px 16px;
+    padding-left: clamp(14px, 2vw, 28px);
+  }
+  .mz__versions {
+    display: flex;
+    gap: 4px;
+  }
+  .mz__ver {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 20px;
+    border: 1px solid var(--line-strong);
+    border-bottom: 0;
+    border-radius: 14px 14px 0 0;
+    background: rgba(241, 241, 241, 0.06);
+    font-size: 15px;
+    color: var(--fg-2);
+    transition: color 0.3s ease, background-color 0.4s ease, border-color 0.4s ease;
+  }
+  /* Bold when active; the hidden bold copy keeps the tab width steady */
+  .mz__ver-t {
+    display: inline-flex;
+    flex-direction: column;
+  }
+  .mz__ver-t::after {
+    content: attr(data-t);
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    font-weight: 600;
+  }
+  .mz__ver small {
+    font-weight: 400;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    opacity: 0.7;
+  }
+  .mz__ver:not(.is-on):hover {
+    color: var(--fg);
+    border-color: rgba(241, 241, 241, 0.32);
+    background: rgba(241, 241, 241, 0.1);
+  }
+  /* Active: joins the frame (covers its top border) and takes the version colour */
+  .mz__ver.is-on {
+    margin-bottom: -1px;
+    padding-bottom: 13px;
+    color: var(--mode);
+    font-weight: 600;
+    border-color: var(--mode-line);
+    background: #130f1b;
+    background: color-mix(in srgb, var(--mode) 7%, #110e19);
+  }
+  .mz__bar .mz__actions {
+    padding-bottom: 8px;
+  }
+  @media (max-width: 559px) {
+    .mz__bar {
+      padding-left: 0;
+    }
+    .mz__bar .mz__actions {
+      order: -1;
+      margin-left: auto;
+      padding-bottom: 0;
+    }
+    .mz__versions {
+      flex: 1 1 100%;
+    }
+    .mz__ver {
+      flex: 1;
+      justify-content: center;
+      padding: 11px 10px;
+    }
+    .mz__ver.is-on {
+      padding-bottom: 12px;
+    }
+    .mz__ver small {
+      display: none;
+    }
+  }
+  .mz__actions {
+    display: flex;
+    gap: 8px;
+  }
+  .mz__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--fg-2);
+    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+  }
+  .mz__btn:hover {
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+  .mz__btn svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+  .mz__btn--try[aria-pressed='true'] {
+    color: var(--bg);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* ---------- Why it's a maze / what changed: cards flip with the version ---------- */
+  .mz__why {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
+    padding: 14px clamp(18px, 2.4vw, 36px) 18px;
+    border-top: 1px solid var(--line);
+  }
+  .mz__why-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .mz__why-title {
+    display: flex;
+    gap: 10px;
+    color: var(--mode);
+  }
+  .mz__why-n {
+    color: var(--fg-3);
+  }
+  .mz__why-nav {
+    display: flex;
+    gap: 6px;
+  }
+  .mz__arrow {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    color: var(--fg-2);
+    transition: color 0.3s ease, border-color 0.3s ease, opacity 0.3s ease;
+  }
+  .mz__arrow:hover {
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+  .mz__arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .mz__arrow svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mz__cards {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding-top: 10px; /* room for the tag */
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .mz__cards::-webkit-scrollbar {
+    display: none;
+  }
+  .mz__card {
+    position: relative;
+    flex: 0 0 clamp(240px, 20vw, 300px);
+    display: grid;
+    scroll-snap-align: start;
+    perspective: 1000px;
+  }
+  .mz__face {
+    grid-area: 1 / 1;
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 14px 16px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(229, 72, 77, 0.22);
+    background: rgba(19, 17, 27, 0.9);
+    backface-visibility: hidden;
+    transition: transform 0.8s var(--ease-out) calc(var(--i) * 0.07s), border-color 0.4s ease, background-color 0.4s ease,
+      box-shadow 0.4s ease;
+  }
+  .mz__face--after {
+    transform: rotateY(180deg);
+    border-color: rgba(155, 140, 255, 0.28);
+    background: #15122a;
+  }
+  .mz[data-mode='after'] .mz__face--before {
+    transform: rotateY(-180deg);
+  }
+  .mz[data-mode='after'] .mz__face--after {
+    transform: none;
+  }
+  .mz__card-n {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--red-soft);
+  }
+  .mz__face--after .mz__card-n {
+    color: var(--accent);
+  }
+  .mz__face h4 {
+    font-size: clamp(16px, 1.2vw, 19px);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .mz__face p {
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--fg-2);
+  }
+  .mz__card.is-seen .mz__face--before {
+    border-color: rgba(229, 72, 77, 0.55);
+  }
+  .mz__card.is-hit .mz__face--before {
+    border-color: var(--red);
+    background: #1f0e16;
+    box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.14);
+  }
+  .mz__card.is-hit .mz__face--after {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(111, 91, 255, 0.2);
+  }
+  .mz__card-tag {
+    position: absolute;
+    z-index: 1;
+    top: -9px;
+    right: 14px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--mode);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bg);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.3s ease, transform 0.4s var(--ease-out);
+  }
+  .mz__card.is-hit .mz__card-tag {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .mz__face {
+      transition: none;
+    }
+  }
+</style>

@@ -1,0 +1,282 @@
+---
+/**
+ * Regroup — where scattered old entries ended up. One tab per new group:
+ * the old locations on the left merge into the new home on the right.
+ */
+interface Area {
+  id: string;
+  to: string;
+  tabs: string[];
+  from: string[];
+  note: string;
+}
+interface Props {
+  areas: Area[];
+}
+const { areas } = Astro.props;
+const ROW = 40;
+const GAP = 8;
+---
+
+<div class="rg" data-rg data-inview>
+  <div class="rg__tabs" role="tablist" aria-label="New group">
+    {
+      areas.map((a, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`rg-tab-${a.id}`}
+          aria-controls={`rg-panel-${a.id}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+          tabindex={i === 0 ? 0 : -1}
+          class:list={['rg__tab', { 'is-active': i === 0 }]}
+          data-rg-tab={a.id}
+        >
+          {a.to}
+          <span class="rg__tab-n">{a.from.length}→1</span>
+        </button>
+      ))
+    }
+  </div>
+
+  {
+    areas.map((a, i) => {
+      const h = a.from.length * (ROW + GAP) - GAP;
+      return (
+        <div class="rg__panel" id={`rg-panel-${a.id}`} role="tabpanel" aria-labelledby={`rg-tab-${a.id}`} data-rg-panel={a.id} hidden={i !== 0}>
+          <p class="kicker rg__label rg__label--from">
+            Before · {a.from.length} {a.from.length === 1 ? 'place' : 'places'}
+          </p>
+          <ul class="rg__from">
+            {a.from.map((f, j) => (
+              <li style={`--i:${j}`}>{f}</li>
+            ))}
+          </ul>
+          <svg class="rg__merge" viewBox={`0 0 100 ${h}`} preserveAspectRatio="none" style={`height:${h}px`} aria-hidden="true">
+            {a.from.map((_, j) => {
+              const y = j * (ROW + GAP) + ROW / 2;
+              return <path d={`M0 ${y} C50 ${y} 50 ${h / 2} 100 ${h / 2}`} />;
+            })}
+          </svg>
+          <span class="rg__down" aria-hidden="true" />
+          <p class="kicker rg__label rg__label--to">After · one group</p>
+          <div class="rg__home">
+            <h4>{a.to}</h4>
+            <ul class="rg__tabs-list">
+              {a.tabs.map((t, j) => (
+                <li style={`--i:${j}`}>{t}</li>
+              ))}
+            </ul>
+            <p>{a.note}</p>
+          </div>
+        </div>
+      );
+    })
+  }
+</div>
+
+<style>
+  .rg {
+    display: grid;
+    gap: 20px;
+  }
+  .rg__tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .rg__tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .rg__tab {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg); /* opaque: the sticky chapter number slides underneath */
+    font-size: 14px;
+    color: var(--fg-2);
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
+  }
+  .rg__tab:hover {
+    color: var(--fg);
+    border-color: var(--line-strong);
+  }
+  .rg__tab.is-active {
+    color: var(--bg);
+    background: var(--fg);
+    border-color: var(--fg);
+  }
+  .rg__tab-n {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
+  .rg__panel {
+    display: grid;
+    gap: 12px;
+    padding: clamp(22px, 3vw, 44px);
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: linear-gradient(180deg, #13111b, #0e0b17);
+  }
+  .rg__panel[hidden] {
+    display: none;
+  }
+  .rg__panel > * {
+    min-width: 0;
+  }
+  .rg__label--from {
+    color: #ff9a9d;
+  }
+  .rg__from {
+    display: grid;
+    gap: 8px;
+  }
+  .rg__from li {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px dashed rgba(229, 72, 77, 0.45);
+    background: rgba(229, 72, 77, 0.06);
+    font-size: 14px;
+    color: #ffc2c4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rg__merge {
+    display: none;
+    width: 100%;
+    overflow: visible;
+  }
+  .rg__merge path {
+    fill: none;
+    stroke: rgba(155, 140, 255, 0.55);
+    stroke-width: 1.2;
+    vector-effect: non-scaling-stroke;
+  }
+  .rg__down {
+    justify-self: center;
+    width: 1px;
+    height: 36px;
+    background: linear-gradient(rgba(229, 72, 77, 0.6), var(--accent));
+  }
+  .rg__home {
+    display: grid;
+    gap: 16px;
+    padding: clamp(20px, 2.2vw, 32px);
+    border-radius: calc(var(--radius) * 0.8);
+    border: 1px solid rgba(155, 140, 255, 0.45);
+    background:
+      radial-gradient(90% 120% at 0% 0%, rgba(111, 91, 255, 0.22), transparent 60%),
+      rgba(111, 91, 255, 0.06);
+  }
+  .rg__home h4 {
+    font-size: clamp(26px, 2.4vw, 40px);
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .rg__tabs-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .rg__tabs-list li {
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(155, 140, 255, 0.16);
+    font-size: 13px;
+    color: #d9d3ff;
+  }
+  .rg__home p {
+    color: var(--fg-2);
+    font-size: 15px;
+    line-height: 1.5;
+    max-width: 44ch;
+  }
+
+  @media (min-width: 900px) {
+    /* Row 2 is centred on every column, so the merge lines (same height as the list)
+       start at each chip and end at the middle of the new group's card. */
+    .rg__panel {
+      grid-template-columns: minmax(0, 300px) minmax(60px, 1fr) minmax(0, 1.25fr);
+      grid-template-areas:
+        'fl . tl'
+        'from merge home';
+      align-items: center;
+      gap: 14px 20px;
+    }
+    .rg__label--from {
+      grid-area: fl;
+    }
+    .rg__label--to {
+      grid-area: tl;
+    }
+    .rg__from {
+      grid-area: from;
+    }
+    .rg__merge {
+      grid-area: merge;
+      display: block;
+    }
+    .rg__home {
+      grid-area: home;
+    }
+    .rg__down {
+      display: none;
+    }
+  }
+
+  /* Entrance: runs when the block first scrolls in, and again on every tab change
+     (a hidden panel restarts its animations when shown). */
+  @media (prefers-reduced-motion: no-preference) {
+    .rg.is-on .rg__from li {
+      animation: rg-in 0.6s var(--ease-out) both calc(var(--i) * 0.05s);
+    }
+    .rg.is-on .rg__merge {
+      animation: rg-wipe 0.9s var(--ease-out) both 0.2s;
+    }
+    .rg.is-on .rg__home {
+      animation: rg-pop 0.8s var(--ease-out) both 0.45s;
+    }
+    .rg.is-on .rg__tabs-list li {
+      animation: rg-in 0.5s var(--ease-out) both calc(0.6s + var(--i) * 0.04s);
+    }
+    .rg:not(.is-on) .rg__from li,
+    .rg:not(.is-on) .rg__home {
+      opacity: 0;
+    }
+    .rg:not(.is-on) .rg__merge {
+      clip-path: inset(0 100% 0 0);
+    }
+  }
+  @keyframes rg-in {
+    from {
+      opacity: 0;
+      transform: translateX(-14px);
+    }
+  }
+  @keyframes rg-wipe {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes rg-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+</style>

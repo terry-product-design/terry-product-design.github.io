@@ -13,6 +13,7 @@ import {
   initReveals,
   countUp,
 } from './core';
+import { initNavMaze } from './maze';
 
 fontsReady.then(() => {
   intro();
@@ -30,7 +31,8 @@ fontsReady.then(() => {
   initScrollStrips();
   initPathExplorer();
   initBeforeAfter();
-  initPathStrip();
+  initNavMaze();
+  initRegroup();
   ScrollTrigger.refresh();
 });
 
@@ -194,14 +196,21 @@ function initPill() {
     if (!pill.contains(e.target as Node)) setOpen(false);
   });
 
-  const triggers = chapters.map((ch, i) =>
-    ScrollTrigger.create({
-      trigger: ch,
-      start: 'top 55%',
-      end: 'bottom 55%',
-      onToggle: () => update(),
-    }),
+  // Filled in place: a chapter already in view fires onToggle during create(),
+  // before its trigger is in the list — so update again once all exist and on every refresh.
+  const triggers: ScrollTrigger[] = [];
+  chapters.forEach((ch) =>
+    triggers.push(
+      ScrollTrigger.create({
+        trigger: ch,
+        start: 'top 55%',
+        end: 'bottom 55%',
+        onToggle: () => update(),
+      }),
+    ),
   );
+  update();
+  ScrollTrigger.addEventListener('refresh', update);
   function update() {
     const i = triggers.map((t) => t.isActive).lastIndexOf(true);
     if (i < 0) return;
@@ -533,82 +542,31 @@ function initBeforeAfter() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Path strip: pick a task, the old sidebar pans to where it lived     */
+/* Regroup: one tab per new group                                      */
 /* ------------------------------------------------------------------ */
-function initPathStrip() {
-  $$('[data-paths]').forEach((block) => {
-    const data = JSON.parse(block.dataset.paths || '[]') as { groups: number[][]; caption: string }[];
-    const buttons = $$<HTMLButtonElement>('[data-path]', block);
-    const frame = $('.strip__frame', block)!;
-    const wrap = $('[data-pathstrip-img]', block)!;
-    const caption = $('[data-pathstrip-caption]', block);
-    const marks = $$('[data-mark]', block);
-    let current = -1;
-    let tl: gsap.core.Timeline | null = null;
-
-    // y offset that centres a group of rows (fractions of image height) in the frame
-    const yFor = (rows: number[]) => {
-      const h = wrap.offsetHeight;
-      const fh = frame.clientHeight;
-      const mid = ((Math.min(...rows) + Math.max(...rows)) / 2) * h;
-      return clamp(fh / 2 - mid, fh - h, 0);
-    };
-
-    const show = (i: number, instant = false) => {
-      if (i === current && !instant) return;
-      current = i;
-      buttons.forEach((b, k) => {
-        const on = k === i;
-        b.classList.toggle('is-active', on);
-        b.setAttribute('aria-pressed', String(on));
+function initRegroup() {
+  $$('[data-rg]').forEach((rg) => {
+    const tabs = $$<HTMLButtonElement>('[data-rg-tab]', rg);
+    const panels = $$('[data-rg-panel]', rg);
+    const select = (tab: HTMLButtonElement, focus = false) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', String(on));
+        t.tabIndex = on ? 0 : -1;
       });
-      marks.forEach((m) => m.classList.toggle('is-on', Number(m.dataset.mark) === i));
-      if (caption) caption.textContent = data[i]?.caption || '';
-      tl?.kill();
-      const groups = data[i]?.groups || [];
-      if (!groups.length || !wrap.offsetHeight) return;
-      if (instant || reduced) {
-        gsap.set(wrap, { y: yFor(groups[0]) });
-        return;
-      }
-      // Multi-place tasks: visit each group in turn, pausing so the step numbers can be read.
-      tl = gsap.timeline();
-      groups.forEach((g, gi) => {
-        tl!.to(wrap, { y: yFor(g), duration: 1.1, ease: 'power3.inOut' }, gi === 0 ? 0 : '+=1.4');
+      panels.forEach((p) => (p.hidden = p.dataset.rgPanel !== tab.dataset.rgTab));
+      if (focus) tab.focus();
+      ScrollTrigger.refresh();
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!dir) return;
+        e.preventDefault();
+        select(tabs[(i + dir + tabs.length) % tabs.length], true);
       });
-    };
-
-    buttons.forEach((b) =>
-      b.addEventListener('click', () => {
-        current = -1;
-        show(Number(b.dataset.path));
-      }),
-    );
-
-    // Follow the reading position: the card crossing the middle of the screen drives the panel.
-    buttons.forEach((b, i) =>
-      ScrollTrigger.create({
-        trigger: b,
-        start: 'top 60%',
-        end: 'bottom 60%',
-        onToggle: (self) => self.isActive && show(i),
-      }),
-    );
-
-    // The sidebar image is lazy: until it has a height nothing can be positioned,
-    // so when it arrives, replay whichever task is active (animated, not reset).
-    const img = $<HTMLImageElement>('img', wrap);
-    const replay = (instant: boolean) => {
-      const i = Math.max(0, current);
-      current = -1;
-      show(i, instant);
-    };
-    if (img && !img.complete) img.addEventListener('load', () => replay(current <= 0), { once: true });
-    else replay(true);
-    window.addEventListener('resize', () => {
-      const i = current;
-      current = -1;
-      show(i, true);
     });
   });
 }

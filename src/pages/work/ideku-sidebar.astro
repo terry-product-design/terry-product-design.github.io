@@ -4,10 +4,10 @@ import Case from '../../layouts/Case.astro';
 import CaseHero from '../../components/case/CaseHero.astro';
 import Chapter from '../../components/case/Chapter.astro';
 import Figure from '../../components/case/Figure.astro';
-import PathExplorer from '../../components/case/PathExplorer.astro';
+import NavMaze from '../../components/case/NavMaze.astro';
+import Regroup from '../../components/case/Regroup.astro';
 import BeforeAfter from '../../components/case/BeforeAfter.astro';
 import NextProject from '../../components/case/NextProject.astro';
-import { Image } from 'astro:assets';
 import { works } from '../../data/content';
 
 import cover from '../../assets/case/ideku-sidebar/cover.png';
@@ -22,7 +22,6 @@ import baStaffOld from '../../assets/case/ideku-sidebar/ba-staff-old.png';
 import baStaffNew from '../../assets/case/ideku-sidebar/ba-staff-new.png';
 import dashboardOld from '../../assets/case/ideku-sidebar/dashboard-old.png';
 import dashboardNew from '../../assets/case/ideku-sidebar/dashboard-new.png';
-import sidebarOld from '../../assets/case/ideku-sidebar/sidebar-old.png';
 
 const index = works.findIndex((w) => w.slug === 'ideku_sidebar');
 const next = works[(index + 1) % works.length];
@@ -84,135 +83,240 @@ const navAfter: [string, string[]?][] = [
   ['Merchant Settings', ['Business Info', 'Billing & Invoice']],
   ['Log History'],
 ];
-const explorerTasks = [
+/* ---------- The maze: the four tasks that changed most in testing (starred in the results) ----------
+   Same labels and order as the task-by-task chart and the before/after screens.
+   The POS route follows the most common wrong path seen in testing; the others are plausible
+   first-time paths (retrospective illustration). Stats: direct completions out of 8. */
+const mazeTasks = [
   {
     id: 'store',
-    label: 'Add a store and its address',
-    before: [['Branch', 'Store'], ['Setting', 'Address']] as [string, string][],
-    after: [['Store Settings', 'Store Info']] as [string, string][],
-    direct: [0, 8] as [number, number],
-    note: 'Before: the address lived under Setting, apart from the store itself — two entries for one job.',
-  },
-  {
-    id: 'staff',
-    label: 'Add a new staff member',
-    before: [['User & Permissions', 'User']] as [string, string][],
-    after: [['Staff Settings', 'Staff']] as [string, string][],
-    direct: [2, 8] as [number, number],
-    note: 'Before: an everyday HR task hidden behind a system-permissions label.',
-  },
-  {
-    id: 'pos',
-    label: 'Register a new POS device',
-    before: [['Branch', 'POS Devices']] as [string, string][],
-    after: [['Devices & Sites', 'POS']] as [string, string][],
-    direct: [3, 8] as [number, number],
-    note: 'Before: managing hardware meant first thinking of branch management.',
+    label: 'Add a store & address',
+    brief: 'Your second store opens next month. Add it — with its address.',
+    before: {
+      steps: [
+        { why: 1, g: 'Branch', c: 'Store', ok: 'part', think: 'A new store… Branch › Store.', note: 'Name, phone, tax number. But there’s no address field.' },
+        { why: 2, g: 'Setting', c: 'Info', think: 'An address is info… Setting › Info?', note: 'That’s the business’s details, not this store’s address.' },
+        { why: 1, g: 'Setting', c: 'Address', ok: true, think: '…Address. Down here?', note: 'Found — under Setting, with its own store picker. One job, two places.' },
+      ],
+      stat: 'In testing, **0 of 8** did this without a wrong turn.',
+    },
+    after: {
+      steps: [
+        { g: 'Store Settings', c: 'Store Info', ok: true, think: 'Store Settings › Store Info.', note: 'A store’s details and its address are two tabs of the same page.' },
+      ],
+      stat: 'In testing, **8 of 8** found it directly.',
+    },
   },
   {
     id: 'ingredient',
     label: 'Add an ingredient',
-    before: [['Master Data', 'Ingredients Master']] as [string, string][],
-    after: [['Supply Chain', 'Ingredient']] as [string, string][],
-    direct: [1, 6] as [number, number],
-    note: 'After: ingredients sit with purchasing, inventory and production — the work they feed into.',
+    brief: 'Sichuan pepper is going on the menu. Set it up as an ingredient first.',
+    before: {
+      steps: [
+        { why: 1, g: 'Inventory', think: 'Ingredients are stock… Inventory?', note: 'Stock levels and counts — not where ingredients are created.' },
+        { why: 1, g: 'Purchasing', c: 'Quick Purchase', think: 'Or where I buy them?', note: 'Purchase orders. Still no ingredient list.' },
+        {
+          g: 'Master Data',
+          c: 'Ingredients Master',
+          ok: true,
+          why: 3,
+          think: '“Master Data”…?',
+          note: 'Found — as “Ingredients Master”. And it may need a unit or category first, from two more “Master” pages.',
+        },
+      ],
+      stat: 'In testing, **1 of 8** found it directly.',
+    },
+    after: {
+      steps: [
+        {
+          g: 'Supply Chain',
+          c: 'Ingredient',
+          ok: true,
+          think: 'Supply Chain › Ingredient.',
+          note: 'Categories, units, ingredients and recipes are tabs of one page — next to purchasing, inventory and production.',
+        },
+      ],
+      stat: 'In testing, **6 of 8** found it directly.',
+    },
   },
   {
-    id: 'printer',
-    label: 'Connect a receipt printer',
-    before: [['IDEKU POS', 'Printer']] as [string, string][],
-    after: [['Devices & Sites', 'POS']] as [string, string][],
-    direct: [3, 6] as [number, number],
-    note: 'After: printer setup lives inside the POS device it prints for.',
+    id: 'staff',
+    label: 'Add a staff member',
+    brief: 'A new cashier starts tomorrow. Give them a POS login.',
+    before: {
+      steps: [
+        { why: 1, g: 'Employees', think: 'A new employee… “Employees”.', note: 'Shifts and credit only. You can’t add anyone here.' },
+        {
+          g: 'User & Permissions',
+          c: 'User',
+          ok: true,
+          why: 3,
+          think: 'The very last group — “User & Permissions”?',
+          note: 'Staff are “users” here, added from the last of 24 groups.',
+        },
+      ],
+      stat: 'In testing, **2 of 8** found it directly.',
+    },
+    after: {
+      steps: [
+        { g: 'Staff Settings', c: 'Staff', ok: true, think: 'Staff Settings › Staff.', note: 'Staff and their roles side by side; shifts and credit sit right below.' },
+      ],
+      stat: 'In testing, **8 of 8** found it directly.',
+    },
   },
   {
-    id: 'fee',
-    label: 'Add a service charge',
-    before: [['Setting', 'Additional Fee']] as [string, string][],
-    after: [['Store Settings', 'Pricing & Fee']] as [string, string][],
-    direct: [5, 5] as [number, number],
-    note: 'Same direct completion — but faster on average for those who succeeded (25s → 19s).',
-  },
-  {
-    id: 'hours',
-    label: 'Set QR ordering hours',
-    before: [['Setting', 'Operational Hours']] as [string, string][],
-    after: [['Devices & Sites', 'QR Ordering']] as [string, string][],
-    direct: [1, 4] as [number, number],
-    note: 'Better, not solved: the scope of “operational hours” stayed unclear and was handed to the Core/CEX team.',
-  },
-  {
-    id: 'coupon',
-    label: 'Create a coupon',
-    before: [['Promotions', 'Coupons']] as [string, string][],
-    after: [['Discounts', 'Coupon']] as [string, string][],
-    direct: [8, 7] as [number, number],
-    note: 'A slight dip (8 → 7). Telling promotions from coupons became a follow-up for the Growth/CEX team.',
+    // Follows the most common wrong route seen in testing.
+    id: 'pos',
+    label: 'Add a POS device',
+    brief: 'Your second store needs another POS terminal at the counter. Add it to the system.',
+    before: {
+      steps: [
+        { why: 0, g: 'IDEKU POS', c: 'Feature', think: 'A new POS… “IDEKU POS”, obviously.', note: 'Settings for the POS app itself. No way to add a device — dead end.' },
+        { why: 2, g: 'Setting', think: 'Maybe adding one is a setting?', note: 'Nine settings. None of them adds a POS.' },
+        {
+          g: 'Branch',
+          c: 'POS Devices',
+          ok: true,
+          why: 4,
+          think: 'Last try: Branch…? “POS Devices”.',
+          note: 'Found — under Branch, where a separate form asks for the store and device type again. Kiosks, KDS screens and customer displays are added here too.',
+        },
+      ],
+      stat: 'In testing, **3 of 8** found it directly.',
+    },
+    after: {
+      steps: [
+        {
+          g: 'Devices & Sites',
+          c: 'POS',
+          ok: true,
+          think: 'Devices & Sites › POS.',
+          note: 'The POS list and its customer displays share one page. Adding a POS asks only for a name — the store comes from the page you’re on.',
+        },
+      ],
+      stat: 'In testing, **8 of 8** found it directly.',
+    },
   },
 ];
 
-/* ---------- Problem: where each task lived in the old sidebar ----------
-   y = vertical centre (px) of the row in sidebar-old.png (482 × 8859), measured from the image. */
-const OLD_H = 8859;
-const oldRows: Record<string, { y: number; top?: boolean; n?: number }> = {
-  'Master Data': { y: 1974, top: true, n: 6 },
-  'Ingredients Master': { y: 2162 },
-  Branch: { y: 6820, top: true, n: 20 },
-  Store: { y: 6924 },
-  'POS Devices': { y: 7029 },
-  Setting: { y: 7548, top: true, n: 23 },
-  Address: { y: 8187 },
-  'User & Permissions': { y: 8599, top: true, n: 24 },
-  User: { y: 8703 },
-};
-const examples = [
+/* ---------- Why it was a maze: cards under the maze; each flips to its fix on the new sidebar.
+   Maze steps point here with `why` (index). ---------- */
+const causes = [
   {
-    task: 'Add a POS device',
-    groups: [['Branch', 'POS Devices']],
-    why: 'To manage hardware, you first had to think of branch management.',
-    where: 'Branch is group 20 of 24 — near the very bottom.',
+    title: 'Named after products, not jobs',
+    text: 'IDEKU POS, IDEKIOSK, IDEFOOD, IDEQUE — internal product names. A kiosk was styled in IDEKIOSK but added under Branch › POS Devices.',
+    fix: {
+      title: 'Grouped by what merchants manage',
+      text: 'Devices & Sites, Store Settings, Staff Settings, Supply Chain — one group for each thing a merchant runs.',
+    },
   },
   {
-    task: 'Add a staff member',
-    groups: [['User & Permissions', 'User']],
-    why: 'A system-permissions label for an everyday HR task.',
-    where: 'User & Permissions is the last of 24 groups.',
+    title: 'One job, several places',
+    text: 'A store under Branch, its address under Setting. Staff accounts in User & Permissions, their shifts in Employees. The supply chain spread over four groups.',
+    fix: {
+      title: 'One job, one page',
+      text: 'A store’s details and address are tabs of one page — so are staff and roles, suppliers and purchases.',
+    },
   },
   {
-    task: 'Add an ingredient',
-    groups: [['Master Data', 'Ingredients Master']],
-    why: 'Internal terms like “Master” don’t read as ingredients.',
-    where: 'Ingredients sit inside “Master Data”, group 6 of 24.',
+    title: 'A catch-all “Setting”',
+    text: 'Business details, a store’s address, fees, receipts, QR ordering hours, even inventory costing — different jobs and scopes, one drawer.',
+    fix: {
+      title: 'Every setting in its place',
+      text: 'Address into Store Info, inventory costing into Inventory, QR hours into QR Ordering, business details into Merchant Settings.',
+    },
   },
   {
-    task: 'Add a store and its address',
-    groups: [
-      ['Branch', 'Store'],
-      ['Setting', 'Address'],
-    ],
-    why: 'One job, two places: the store under Branch, its address under Setting.',
-    where: 'Groups 20 and 23 of 24 — the panel walks you through both.',
+    title: 'Words from the system',
+    text: '“Ingredients Master”, “Quick Purchase”, “User & Permissions” — vocabulary from the database, not from a restaurant.',
+    fix: {
+      title: 'Words merchants use',
+      text: 'Ingredient, Purchasing, Staff, Store Info. No more “Master” or “Quick”.',
+    },
+  },
+  {
+    title: 'Asking again for what it knew',
+    text: 'Adding a device opened a separate page that asked for the store and the device type again — every time.',
+    fix: {
+      title: 'Context carried over',
+      text: 'Device pages follow the store picker in the header; adding a POS asks only for a name.',
+    },
   },
 ];
-const marks = examples.flatMap((ex, i) => {
-  let step = 0;
-  return ex.groups.flatMap((g, gi) =>
-    g.map((label) => ({ ex: i, group: gi, step: ++step, label, top: !!oldRows[label].top, y: oldRows[label].y })),
-  );
-});
-const pathData = examples.map((ex, i) => ({
-  groups: ex.groups.map((g) => g.map((l) => oldRows[l].y / OLD_H)),
-  caption: ex.where,
-}));
+
+/* ---------- Where everything went ---------- */
+const areas = [
+  {
+    id: 'devices',
+    to: 'Devices & Sites',
+    tabs: ['POS', 'Mini POS', 'QR Ordering', 'Kiosk', 'KDS/EDS', 'Waiting List', 'Queue Number Display'],
+    from: [
+      'Branch › POS Devices',
+      'IDEKU POS',
+      'IDEKIOSK',
+      'IDEFOOD',
+      'IDEQUE',
+      'KDS/EDS',
+      'Customer Display',
+      'Queue Number Display',
+      'Table Management › QR Generator',
+      'Setting › Operational Hours',
+    ],
+    note: 'One page per device type — its list, its add flow and its settings together. Customer displays moved inside POS, the screen they pair with.',
+  },
+  {
+    id: 'store',
+    to: 'Store Settings',
+    tabs: ['Store Info', 'Table Management', 'Pricing & Fee', 'Tip', 'Receipt Template', 'Order Status'],
+    from: [
+      'Branch › Store',
+      'Setting › Address',
+      'Table Management › Table Setup',
+      'Setting › Additional Fee',
+      'Setting › Pricing Format',
+      'Setting › Tipping Feature',
+      'Setting › Receipt Template',
+      'Setting › Order Status',
+    ],
+    note: 'Everything about running one store. Details and address are tabs of Store Info; fees and rounding share Pricing & Fee.',
+  },
+  {
+    id: 'staff',
+    to: 'Staff Settings',
+    tabs: ['Staff', 'Staff Shift', 'Credit'],
+    from: ['User & Permissions › User', 'User & Permissions › User Role', 'Employees › Shift', 'Employees › Credit'],
+    note: 'Accounts, roles, shifts and credit — one group for the people who work there. Roles became a tab next to the staff list.',
+  },
+  {
+    id: 'supply',
+    to: 'Supply Chain',
+    tabs: ['Ingredient', 'Purchasing', 'Inventory', 'Production'],
+    from: [
+      'Master Data › 5 “Master” pages',
+      'Purchasing › Quick Purchase',
+      'Inventory › 5 pages',
+      'Production › Quick Production',
+      'Setting › General (inventory cost)',
+    ],
+    note: 'Ordered like the work: set up ingredients, buy, store, produce. Suppliers sit next to purchases; inventory costing moved into Inventory.',
+  },
+  {
+    id: 'merchant',
+    to: 'Merchant Settings',
+    tabs: ['Business Info', 'Billing & Invoice'],
+    from: ['Setting › Info'],
+    note: 'Business-wide details, separated from the settings of each store.',
+  },
+];
 
 /* ---------- Usability test results (8 participants × 13 tasks per version) ---------- */
 const tasks = [
-  { t: 'Add store & address', od: 0, or: 5, ot: 99, nd: 8, nr: 0, nt: 32 },
+  { t: 'Add store & address', maze: 1, od: 0, or: 5, ot: 99, nd: 8, nr: 0, nt: 32 },
   { t: 'Create menu', od: 7, or: 1, ot: 24, nd: 6, nr: 2, nt: 21 },
-  { t: 'Add ingredients', od: 1, or: 3, ot: 80, nd: 6, nr: 0, nt: 47 },
+  { t: 'Add ingredients', maze: 2, od: 1, or: 3, ot: 80, nd: 6, nr: 0, nt: 47 },
   { t: 'New purchase', od: 6, or: 0, ot: 27, nd: 7, nr: 1, nt: 32 },
-  { t: 'Add staff', od: 2, or: 4, ot: 86, nd: 8, nr: 0, nt: 36 },
-  { t: 'Add POS device', od: 3, or: 3, ot: 45, nd: 8, nr: 0, nt: 30 },
+  { t: 'Add staff', maze: 3, od: 2, or: 4, ot: 86, nd: 8, nr: 0, nt: 36 },
+  { t: 'Add POS device', maze: 4, od: 3, or: 3, ot: 45, nd: 8, nr: 0, nt: 30 },
   { t: 'Add printer', od: 3, or: 3, ot: 42, nd: 6, nr: 1, nt: 26 },
   { t: 'Set up tables', od: 7, or: 1, ot: 45, nd: 8, nr: 0, nt: 30 },
   { t: 'View order', od: 4, or: 3, ot: 58, nd: 6, nr: 1, nt: 16 },
@@ -340,72 +444,23 @@ const handoffs = [
         The same problem showed up inside the company. Operations and engineering found it hard to use too — even people who had been here <strong>more than six months still opened the wrong entry</strong>. So this wasn’t just a learning curve for newcomers: the entries themselves were hard to predict and hard to remember.
       </p>
       <p>
-        The sidebar had grown with the product. Every new feature added an entry or was dropped into an existing group, without a task-based pass over the whole. Over time, it came to mirror <strong>internal systems and development history</strong> rather than how merchants work.
+        The sidebar had grown with the product. Every new feature added an entry or was dropped into an existing group, without a task-based pass over the whole. Over time it came to mirror <strong>internal systems and development history</strong> rather than how merchants work. For a merchant, it was a maze.
       </p>
     </div>
 
-    <div class="problem" data-paths={JSON.stringify(pathData)}>
-      <div class="paths">
-        <p class="kicker paths__hint">Pick a task — the old sidebar shows where it lived</p>
-        <ol class="paths__list" aria-label="Example tasks in the old sidebar">
-          {
-            examples.map((ex, i) => {
-              let step = 0;
-              return (
-                <li>
-                  <button
-                    type="button"
-                    class:list={['path', { 'is-active': i === 0 }]}
-                    aria-pressed={i === 0 ? 'true' : 'false'}
-                    aria-controls="old-sidebar"
-                    data-path={i}
-                  >
-                    <span class="kicker">{ex.task}</span>
-                    {ex.groups.map((g) => (
-                      <span class="crumb">
-                        {g.map((label, k) => (
-                          <>
-                            {k > 0 && <i aria-hidden="true">›</i>}
-                            <span>
-                              <b>{++step}</b>
-                              {label}
-                            </span>
-                          </>
-                        ))}
-                      </span>
-                    ))}
-                    <span class="paths__why">{ex.why}</span>
-                  </button>
-                </li>
-              );
-            })
-          }
-        </ol>
-      </div>
-      <figure class="strip" id="old-sidebar" data-pathstrip>
-        <div class="strip__frame">
-          <div class="strip__img" data-pathstrip-img>
-            <Image src={sidebarOld} alt="The full original sidebar, with 24 top-level groups" widths={[482]} sizes="260px" loading="lazy" />
-            {
-              marks.map((m) => (
-                <span
-                  class:list={['strip__mark', { 'strip__mark--top': m.top, 'is-on': m.ex === 0 }]}
-                  style={`top:${((m.y / OLD_H) * 100).toFixed(3)}%`}
-                  data-mark={m.ex}
-                  aria-hidden="true"
-                >
-                  <b>{m.step}</b>
-                </span>
-              ))
-            }
-          </div>
-        </div>
-        <figcaption class="strip__caption">
-          <span class="strip__caption-row"><span>Before</span><span>24 top-level groups</span></span>
-          <span class="strip__where" data-pathstrip-caption aria-live="polite">{examples[0].where}</span>
-        </figcaption>
-      </figure>
+    <div class="stack">
+      <p class="kicker" data-reveal="fade-up">Walk it yourself</p>
+      <h3 class="c-h3" data-reveal="fade-up">Four everyday jobs. Where do they live?</h3>
+      <p class="prose" data-reveal="fade-up">
+        Here is the old back office as a map: 24 groups around the root, their entries one click further out. The four jobs are the tasks that changed most in our usability test. Watch someone try one — each wrong turn lights up the reason below the map — or press <strong>Let me try</strong> and find your own way. Switch to the new sidebar to see what changed.
+      </p>
     </div>
+    <div class="bleed" data-reveal="fade-up">
+      <NavMaze before={navBefore} after={navAfter} tasks={mazeTasks} whys={causes} />
+    </div>
+    <p class="fineprint" data-reveal="fade-up">
+      Retrospective illustration, not recordings. The four jobs are the tasks that changed most in the comparative study (chapter {num('validation')}); the POS route follows the most common wrong path seen there, the others are plausible first-time paths. Labels follow the original 24-group and launched 14-group navigation; tests ran on the 12-group test version.
+    </p>
 
     <aside class="callout" data-reveal="fade-up">
       <p class="kicker">Problem statement</p>
@@ -475,55 +530,108 @@ const handoffs = [
     <p class="lead" data-reveal="fade-up">
       I drafted an initial architecture, then worked through it with <strong>each feature’s PM</strong> — where every feature belongs, what each group is called, and how the flows connect.
     </p>
-    <div class="cards cards--3">
+    <div class="cards cards--2">
       <div class="card-plain" data-reveal="fade-up">
         <span class="card-plain__num">01</span>
-        <h3 class="c-h3">Group related tasks</h3>
-        <p>Ingredients, purchasing, inventory and production now live together under Supply Chain, so their relationship is visible in the navigation itself.</p>
+        <h3 class="c-h3">Group by what merchants manage</h3>
+        <p>Devices, stores, staff, the supply chain, the business itself — each became one group. “Where is it?” turns into “What am I working on?”</p>
       </div>
       <div class="card-plain" data-reveal="fade-up">
         <span class="card-plain__num">02</span>
-        <h3 class="c-h3">Name it like merchants do</h3>
-        <p>Ingredients, Store Info, and explicit Staff and Devices groups — so nobody has to decode internal terms before they start.</p>
+        <h3 class="c-h3">One job, one page</h3>
+        <p>A feature’s list, its add flow and its settings sit on one page as tabs: a kiosk’s list, appearance and settings; staff and their roles; suppliers and purchases; a store’s details and address.</p>
       </div>
       <div class="card-plain" data-reveal="fade-up">
         <span class="card-plain__num">03</span>
-        <h3 class="c-h3">Fewer first-level decisions</h3>
-        <p>Scattered entries were reorganized, not just trimmed. Entry count is a structural signal — whether it’s easier to find still had to be tested.</p>
+        <h3 class="c-h3">Every setting in its place</h3>
+        <p>The catch-all Setting was emptied into the areas it served. Each area also got a clear scope: the supply chain is managed across the business, while store settings and devices follow the store picked in the header.</p>
+      </div>
+      <div class="card-plain" data-reveal="fade-up">
+        <span class="card-plain__num">04</span>
+        <h3 class="c-h3">Plain words, fewer layers</h3>
+        <p>No more “Master” or “Quick”; single-entry groups were flattened. Entry count is a structural signal — whether things got easier to find still had to be tested.</p>
       </div>
     </div>
 
     <div class="stack">
-      <p class="kicker" data-reveal="fade-up">Try it</p>
-      <h3 class="c-h3" data-reveal="fade-up">Where would you click?</h3>
+      <p class="kicker" data-reveal="fade-up">Where everything went</p>
+      <h3 class="c-h3" data-reveal="fade-up">Scattered entries, one home each</h3>
     </div>
-    <div class="bleed">
-      <PathExplorer before={navBefore} after={navAfter} tasks={explorerTasks} />
+    <div class="bleed" data-reveal="fade-up">
+      <Regroup areas={areas} />
     </div>
     <p class="fineprint" data-reveal="fade-up">
-      Retrospective illustration. Paths follow the usability-test tasks; labels follow the launched 14-entry navigation. Test results were measured on the 12-entry test version.
+      Retrospective summary: old locations from the original back office, new groups from the launched navigation.
     </p>
 
     <div class="stack">
       <h3 class="c-h3" data-reveal="fade-up">The trade-off: keeping merchants in one store</h3>
       <p class="prose" data-reveal="fade-up">
-        Inspired by foodpanda and Uber Eats, I wanted a <strong>store filter in the sidebar</strong>, so merchants wouldn’t have to re-select their store in every feature. It required extra engineering, and the PMs had a timeline to protect — so it didn’t make this release.
+        Inspired by foodpanda and Uber Eats, I wanted a <strong>store switcher in the sidebar</strong>, so merchants pick a store once and every feature stays in it. It required extra engineering, and the PMs had a timeline to protect — so it didn’t make this release.
       </p>
     </div>
     <div class="tradeoff" data-reveal="fade-up">
       <div class="tradeoff__col">
         <p class="kicker">Proposed</p>
-        <h4>A global store filter</h4>
-        <p>Pick a store once in the sidebar; every feature stays in that store’s context.</p>
+        <h4>A store switcher in the sidebar</h4>
+        <p>Pick a store once; every feature stays in that store’s context.</p>
         <span class="tradeoff__tag tradeoff__tag--off">Not in this release</span>
       </div>
       <span class="tradeoff__arrow" aria-hidden="true"></span>
       <div class="tradeoff__col tradeoff__col--on">
         <p class="kicker">Shipped</p>
-        <h4>Store context inside each feature</h4>
-        <p>Features reuse the store you’re already working in — adding a POS records it to the store selected on that page, instead of asking again.</p>
+        <h4>Pages that follow the store picker</h4>
+        <p>The header already had a store picker, but the old Branch pages didn’t show it. Device pages now follow it — adding a POS records it to the selected store instead of asking again.</p>
         <span class="tradeoff__tag">Smaller scope, part of the benefit</span>
       </div>
+    </div>
+
+    <div class="forms" data-reveal="fade-up">
+      <figure class="form">
+        <figcaption>
+          <span class="kicker form__k--old">Before</span>
+          <span>Branch › POS Devices › Add Device — a separate page</span>
+        </figcaption>
+        <div class="ui" aria-hidden="true">
+          <div class="ui__top"><span class="ui__title">Add Device</span></div>
+          <div class="ui__page">
+            <div class="ui__card">
+              <div class="ui__f"><span>Device name</span><i class="ui__in">Counter 2</i></div>
+              <div class="ui__f ui__f--ask"><span>Store</span><i class="ui__in ui__in--sel">Select store</i><b>again</b></div>
+              <div class="ui__f ui__f--ask"><span>Type</span><i class="ui__in ui__in--sel">POS</i><b>again</b></div>
+              <div class="ui__f"><span>Status</span><i class="ui__status">Offline</i></div>
+              <div class="ui__btns"><i>Cancel</i><i class="is-primary">Save</i></div>
+            </div>
+          </div>
+        </div>
+        <p class="form__note">Four fields on a new page — including the store and device type you’d already chosen.</p>
+      </figure>
+      <figure class="form">
+        <figcaption>
+          <span class="kicker">After</span>
+          <span>Devices &amp; Sites › POS › Add POS — a modal on the list</span>
+        </figcaption>
+        <div class="ui" aria-hidden="true">
+          <div class="ui__top"><span class="ui__store">Main Street store<em>▾</em></span></div>
+          <div class="ui__page ui__page--list">
+            <div class="ui__rows"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="ui__modal">
+              <span class="ui__title">Add POS</span>
+              <div class="ui__f"><span>Name</span><i class="ui__in">Counter 2</i></div>
+              <div class="ui__btns"><i>Cancel</i><i class="is-primary">Create</i></div>
+            </div>
+          </div>
+        </div>
+        <p class="form__note">One field. The store comes from the picker in the header; the type from the page you’re on.</p>
+      </figure>
+    </div>
+    <p class="fineprint" data-reveal="fade-up">Simplified recreation of the two flows.</p>
+
+    <div class="stack">
+      <h3 class="c-h3" data-reveal="fade-up">What we chose not to touch</h3>
+      <p class="prose" data-reveal="fade-up">
+        Purchasing, stock transfers and item adjustments carry complex logic. They moved into Supply Chain, but their flows stayed exactly as they were. The revamp changed <strong>where things live, not how these features work</strong> — which kept the risk inside the timeline.
+      </p>
     </div>
   </Chapter>
 
@@ -639,13 +747,14 @@ const handoffs = [
     <div class="stack">
       <h3 class="c-h3" data-reveal="fade-up">Task by task</h3>
       <p class="prose" data-reveal="fade-up">
-        The biggest gains came where entries had been hardest to predict — <strong>store &amp; address went from 0/8 to 8/8</strong> direct completions; staff from 2/8 and POS from 3/8 to 8/8.
+        The biggest gains came on the four jobs from the maze (marked 01–04) — the entries that had been hardest to predict. <strong>Store &amp; address went from 0/8 to 8/8</strong> direct completions; staff from 2/8 and POS from 3/8 to 8/8; ingredients from 1/8 to 6/8.
       </p>
     </div>
     <figure class="dumb" data-inview>
       <figcaption class="dumb__legend">
         <span class="lg lg--old">Old</span>
         <span class="lg lg--new">New</span>
+        <span class="lg lg--maze">Jobs from the maze</span>
         <span class="dumb__axis-note">Direct completions out of 8<span class="dumb__time-note"> · avg. time of successful attempts</span></span>
       </figcaption>
       <div class="dumb__axis" aria-hidden="true">
@@ -659,8 +768,11 @@ const handoffs = [
           tasks.map((r, i) => {
             const dir = r.nd > r.od ? 'up' : r.nd < r.od ? 'down' : 'flat';
             return (
-              <li class:list={['dumb__row', `dumb__row--${dir}`]} style={`--i:${i}`}>
-                <span class="dumb__name">{r.t}</span>
+              <li class:list={['dumb__row', `dumb__row--${dir}`, { 'dumb__row--maze': r.maze }]} style={`--i:${i}`}>
+                <span class="dumb__name">
+                  {r.maze && <b class="dumb__tag" title="One of the four jobs from the maze">{pad(r.maze)}</b>}
+                  {r.t}
+                </span>
                 <span class="dumb__track">
                   <span class="dumb__seg" style={`--a:${Math.min(r.od, r.nd) / 8};--b:${Math.max(r.od, r.nd) / 8}`} />
                   <span class="dumb__dot dumb__dot--old" style={`--x:${r.od / 8}`} title={`Old: ${r.od}/8`} />
@@ -726,28 +838,14 @@ const handoffs = [
     </p>
 
     <div class="stack">
-      <h3 class="c-h3" data-reveal="fade-up">Four everyday tasks, before and after</h3>
+      <h3 class="c-h3" data-reveal="fade-up">The four jobs, before and after</h3>
       <p class="prose" data-reveal="fade-up">
-        The same tasks from chapter {num('problem')}, in the old back office and the launched one. Look at the left edge: the sidebar tells you where you are.
+        The same four jobs from the maze, now in the real screens of the old back office and the launched one. Look at the left edge: the sidebar tells you where you are.
       </p>
     </div>
     <div class="bleed" data-reveal="fade-up">
       <BeforeAfter
         items={[
-          {
-            id: 'pos',
-            label: 'Add a POS device',
-            before: [{ src: baPosOld, alt: 'Old back office: POS devices under Branch', crumb: ['Branch', 'POS Devices'] }],
-            after: { src: baPosNew, alt: 'Launched back office: POS under Devices & Sites', crumb: ['Devices & Sites', 'POS'] },
-            stat: 'Direct completion in testing — 3/8 → 8/8',
-          },
-          {
-            id: 'ingredient',
-            label: 'Add an ingredient',
-            before: [{ src: baIngredientOld, alt: 'Old back office: Ingredients Category Master under Master Data', crumb: ['Master Data', 'Ingredients Category Master'] }],
-            after: { src: baIngredientNew, alt: 'Launched back office: Ingredient under Supply Chain', crumb: ['Supply Chain', 'Ingredient'] },
-            stat: 'Direct completion in testing — 1/8 → 6/8',
-          },
           {
             id: 'store',
             label: 'Add a store & address',
@@ -759,11 +857,25 @@ const handoffs = [
             stat: 'Direct completion in testing — 0/8 → 8/8',
           },
           {
+            id: 'ingredient',
+            label: 'Add an ingredient',
+            before: [{ src: baIngredientOld, alt: 'Old back office: Ingredients Category Master under Master Data', crumb: ['Master Data', 'Ingredients Category Master'] }],
+            after: { src: baIngredientNew, alt: 'Launched back office: Ingredient under Supply Chain', crumb: ['Supply Chain', 'Ingredient'] },
+            stat: 'Direct completion in testing — 1/8 → 6/8',
+          },
+          {
             id: 'staff',
             label: 'Add a staff member',
             before: [{ src: baStaffOld, alt: 'Old back office: staff managed as users under User & Permissions', crumb: ['User & Permissions', 'User'] }],
             after: { src: baStaffNew, alt: 'Launched back office: Staff under Staff Settings', crumb: ['Staff Settings', 'Staff'] },
             stat: 'Direct completion in testing — 2/8 → 8/8',
+          },
+          {
+            id: 'pos',
+            label: 'Add a POS device',
+            before: [{ src: baPosOld, alt: 'Old back office: POS devices under Branch', crumb: ['Branch', 'POS Devices'] }],
+            after: { src: baPosNew, alt: 'Launched back office: POS under Devices & Sites', crumb: ['Devices & Sites', 'POS'] },
+            stat: 'Direct completion in testing — 3/8 → 8/8',
           },
         ]}
       />
@@ -852,209 +964,6 @@ const handoffs = [
     max-width: 90ch;
   }
 
-  /* ---------- Problem: task picker + old sidebar with highlighted path ---------- */
-  .problem {
-    display: grid;
-    gap: clamp(24px, 4vw, 64px);
-    align-items: start;
-  }
-  .paths {
-    display: grid;
-    gap: 14px;
-  }
-  .paths__list {
-    display: grid;
-    gap: 12px;
-  }
-  .path {
-    display: grid;
-    gap: 12px;
-    width: 100%;
-    padding: clamp(18px, 2vw, 28px);
-    border-radius: var(--radius);
-    border: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(26, 24, 35, 0.9), rgba(19, 17, 27, 0.6));
-    text-align: left;
-    transition: border-color 0.4s ease, background-color 0.4s ease, opacity 0.4s ease;
-  }
-  .path:not(.is-active) {
-    opacity: 0.72;
-  }
-  .path:hover {
-    opacity: 1;
-    border-color: var(--line-strong);
-  }
-  .path.is-active {
-    opacity: 1;
-    border-color: rgba(229, 72, 77, 0.55);
-    background:
-      radial-gradient(80% 120% at 0% 0%, rgba(229, 72, 77, 0.14), transparent 60%),
-      linear-gradient(180deg, rgba(26, 24, 35, 0.95), rgba(19, 17, 27, 0.7));
-  }
-  .crumb {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-    font-size: clamp(18px, 1.5vw, 23px);
-    letter-spacing: -0.02em;
-  }
-  .crumb span {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 12px 4px 6px;
-    border-radius: 999px;
-    border: 1px dashed rgba(229, 72, 77, 0.55);
-    color: #ffb4b6;
-  }
-  .crumb b {
-    display: inline-grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: rgba(229, 72, 77, 0.2);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    color: #ffb4b6;
-  }
-  .path.is-active .crumb b {
-    background: #e5484d;
-    color: #fff;
-  }
-  .crumb i {
-    font-style: normal;
-    color: var(--fg-3);
-  }
-  .paths__why {
-    color: var(--fg-2);
-    font-size: 15px;
-  }
-
-  .strip {
-    display: grid;
-    gap: 12px;
-    margin: 0;
-    justify-self: center;
-    width: min(100%, 260px);
-  }
-  .strip__frame {
-    position: relative;
-    height: min(64svh, 600px);
-    border-radius: 18px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 0 0 1px var(--line-strong), 0 30px 80px rgba(0, 0, 0, 0.45);
-  }
-  .strip__frame::after {
-    content: '';
-    position: absolute;
-    inset: auto 0 0;
-    height: 48px;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff);
-    pointer-events: none;
-  }
-  .strip__img {
-    position: relative;
-    will-change: transform;
-  }
-  .strip__img :global(img) {
-    width: 100%;
-    height: auto;
-  }
-  .strip__mark {
-    position: absolute;
-    left: 3%;
-    right: 3%;
-    height: 0.95%;
-    transform: translateY(-50%) scaleX(0.96);
-    border-radius: 8px;
-    border: 1.5px solid #e5484d;
-    background: rgba(229, 72, 77, 0.1);
-    opacity: 0;
-    transition: opacity 0.4s ease, transform 0.6s var(--ease-out);
-  }
-  .strip__mark--top {
-    background: rgba(229, 72, 77, 0.06);
-    border-style: dashed;
-  }
-  .strip__mark.is-on {
-    opacity: 1;
-    transform: translateY(-50%);
-  }
-  .strip__mark b {
-    position: absolute;
-    right: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: grid;
-    place-items: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #e5484d;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
-    color: #fff;
-  }
-  .strip__caption {
-    display: grid;
-    gap: 8px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.04em;
-    line-height: 1.5;
-  }
-  .strip__caption-row {
-    display: flex;
-    justify-content: space-between;
-    text-transform: uppercase;
-    color: var(--fg-3);
-  }
-  .strip__caption-row span:last-child {
-    color: #ff8a8d;
-  }
-  .strip__where {
-    color: var(--fg-2);
-  }
-  @media (min-width: 900px) {
-    .problem {
-      grid-template-columns: minmax(0, 1fr) 260px;
-    }
-    /* Room for the last card to reach the middle while the sidebar is still pinned */
-    .paths {
-      padding-bottom: min(22vh, 220px);
-    }
-    .strip {
-      position: sticky;
-      top: calc(var(--nav-h) + 32px);
-    }
-  }
-  /* Phones: keep the sidebar in view above the task list */
-  @media (max-width: 899px) {
-    .strip {
-      order: -1;
-      position: sticky;
-      top: 10px;
-      z-index: 3;
-      width: 100%;
-      grid-template-columns: 150px minmax(0, 1fr);
-      align-items: end;
-      gap: 14px;
-      padding: 10px;
-      border-radius: 20px;
-      background: rgba(8, 5, 15, 0.92);
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
-    }
-    .strip__frame {
-      height: 34svh;
-      border-radius: 12px;
-    }
-  }
   .callout__statement {
     font-size: clamp(26px, 2.8vw, 46px);
     line-height: 1.15;
@@ -1198,6 +1107,192 @@ const handoffs = [
       width: 100%;
       height: 1px;
       background: linear-gradient(90deg, var(--line-strong), var(--accent));
+    }
+  }
+
+  /* ---------- Trade-off: add-device forms, before and after (simplified recreation) ---------- */
+  .forms {
+    display: grid;
+    gap: 16px;
+  }
+  /* Caption, mock and note share rows across both figures, so the mocks line up and match heights */
+  .form {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 14px;
+    margin: 0;
+  }
+  .form figcaption {
+    display: grid;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--fg-2);
+  }
+  .form__k--old {
+    color: #ff9a9d;
+  }
+  .form__note {
+    font-size: 15px;
+    color: var(--fg-2);
+  }
+  .ui {
+    --ui-red: #8f1d2c;
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 340px;
+    border-radius: calc(var(--radius) * 0.75);
+    overflow: hidden;
+    background: #f2f1f5;
+    color: #2a2730;
+    font-size: 12px;
+    box-shadow: 0 0 0 1px var(--line-strong), 0 30px 70px rgba(0, 0, 0, 0.4);
+  }
+  .ui__top {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 18px;
+    background: #fff;
+    border-bottom: 1px solid #e6e4ea;
+  }
+  .ui__title {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .ui__store {
+    display: inline-flex;
+    align-items: center;
+    gap: 22px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1.5px solid var(--accent-2);
+    box-shadow: 0 0 0 4px rgba(111, 91, 255, 0.18);
+    font-size: 12px;
+  }
+  .ui__store em {
+    font-style: normal;
+    color: #8a8592;
+  }
+  .ui__page {
+    position: relative;
+    padding: 16px 18px;
+  }
+  .ui__card,
+  .ui__modal {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(20, 10, 30, 0.08);
+  }
+  .ui__card {
+    width: min(100%, 300px);
+  }
+  .ui__f {
+    position: relative;
+    display: grid;
+    gap: 4px;
+    font-size: 11px;
+    color: #6b6672;
+  }
+  .ui__in {
+    display: block;
+    padding: 7px 9px;
+    border-radius: 5px;
+    border: 1px solid #dcd9e1;
+    font-style: normal;
+    font-size: 12px;
+    color: #2a2730;
+  }
+  .ui__in--sel::after {
+    content: '▾';
+    float: right;
+    color: #8a8592;
+  }
+  .ui__f--ask .ui__in {
+    border: 1.5px dashed #e5484d;
+    background: #fff4f4;
+  }
+  .ui__f b {
+    position: absolute;
+    right: -8px;
+    top: 0;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #e5484d;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+  .ui__status {
+    font-style: normal;
+    font-size: 12px;
+    color: #2a2730;
+  }
+  .ui__status::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #c4323c;
+  }
+  .ui__btns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .ui__btns i {
+    padding: 5px 12px;
+    border-radius: 5px;
+    border: 1px solid var(--ui-red);
+    font-style: normal;
+    font-size: 11px;
+    color: var(--ui-red);
+  }
+  .ui__btns i.is-primary {
+    background: var(--ui-red);
+    color: #fff;
+  }
+  .ui__rows {
+    display: grid;
+    gap: 8px;
+  }
+  .ui__rows i {
+    height: 18px;
+    border-radius: 4px;
+    background: #fff;
+  }
+  .ui__rows i:first-child {
+    background: var(--ui-red);
+    opacity: 0.85;
+  }
+  .ui__page--list::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(30, 24, 40, 0.38);
+  }
+  .ui__modal {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    width: min(78%, 260px);
+    transform: translate(-50%, -50%);
+    box-shadow: 0 20px 50px rgba(20, 10, 30, 0.35);
+  }
+  @media (min-width: 900px) {
+    .forms {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -1373,6 +1468,12 @@ const handoffs = [
   .lg--new::before {
     border-radius: 50%;
     background: var(--accent);
+  }
+  .lg--maze::before {
+    width: 18px;
+    border-radius: 4px;
+    background: rgba(111, 91, 255, 0.35);
+    box-shadow: inset 0 0 0 1px rgba(155, 140, 255, 0.6);
   }
 
   .stack-bars {
@@ -1583,7 +1684,39 @@ const handoffs = [
     font-size: 14px;
   }
   .dumb__name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: var(--fg-2);
+  }
+  /* The four jobs walked through in the maze (chapter 02) */
+  .dumb__row--maze {
+    margin: 0 -10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 10px;
+    background: rgba(111, 91, 255, 0.08);
+  }
+  .dumb__row--maze,
+  .dumb__row--maze + .dumb__row {
+    border-top-color: transparent;
+  }
+  .dumb__row--maze + .dumb__row--maze {
+    margin-top: 2px;
+  }
+  .dumb__row--maze .dumb__name {
+    color: var(--fg);
+  }
+  .dumb__tag {
+    flex: none;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(111, 91, 255, 0.35);
+    box-shadow: inset 0 0 0 1px rgba(155, 140, 255, 0.6);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 500;
+    color: #e4dfff;
   }
   .dumb__track {
     position: relative;

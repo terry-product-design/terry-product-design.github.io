@@ -79,15 +79,19 @@ ScrollTrigger.create({
 });
 
 const sectionLinks = $$<HTMLAnchorElement>('[data-section-link]');
-const sectionTriggers = $$('[data-section]').map((section) => ({
-  key: section.dataset.section!,
-  st: ScrollTrigger.create({
-    trigger: section,
-    start: 'top 50%',
-    end: 'bottom 50%',
-    onToggle: () => updateActiveLink(),
-  }),
-}));
+// Filled in place: a trigger already in view fires onToggle during create().
+const sectionTriggers: { key: string; st: ScrollTrigger }[] = [];
+$$('[data-section]').forEach((section) => {
+  sectionTriggers.push({
+    key: section.dataset.section!,
+    st: ScrollTrigger.create({
+      trigger: section,
+      start: 'top 50%',
+      end: 'bottom 50%',
+      onToggle: () => updateActiveLink(),
+    }),
+  });
+});
 function updateActiveLink() {
   const active = sectionTriggers.filter((t) => t.st.isActive).pop();
   sectionLinks.forEach((l) => l.classList.toggle('is-active', !!active && l.dataset.sectionLink === active.key));

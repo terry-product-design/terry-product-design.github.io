@@ -50,6 +50,7 @@ npm run preview    # 預覽正式版
 - `Figure` 圖片（`zoom` 點擊放大、`ratio` 裁切比例、`parallax` 視差、`class="bleed"` 滿版）
 - `DeviceVideo` 裝置錄影（MP4 + WebP 封面放在 `public/case/<slug>/`；`mask` 可傳入去背遮罩，`width`/`height` 設定尺寸）
 - `Feature` 情境 + 功能說明（或用 `rows` 呈現「痛點／商業需求／設計解法」）、`PathExplorer` 新舊導航路徑對照、`BeforeAfter` 前後畫面切換、`Pan` 可拖曳的超寬圖、`Personas` 人物誌、`NextProject` 下一個作品
+- `NavMaze` 把導航畫成心智圖迷宮：看示範者一路試錯，或按「Let me try」自己走（行為在 `src/scripts/maze.ts`）；`Regroup` 舊的分散位置合併到新分類
 
 圖片放 `src/assets/case/<slug>/`。GIF 請先轉成 MP4（體積約小 15 倍），例如：
 
