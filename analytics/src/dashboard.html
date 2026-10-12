@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>作品集流量</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #08050f;
+    --card: #13111b;
+    --card-2: #181522;
+    --line: rgba(241, 241, 241, 0.09);
+    --line-2: rgba(241, 241, 241, 0.16);
+    --fg: #f1f1f1;
+    --fg-2: rgba(241, 241, 241, 0.66);
+    --fg-3: rgba(241, 241, 241, 0.46);
+    --accent: #9b8cff;
+    --accent-2: #6f5bff;
+    /* Chart series (validated for this dark surface) */
+    --s-views: #8a78f5;
+    --s-visitors: #2ea593;
+    --up: #4ade80;
+    --down: #ff9a9d;
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { width: min(100% - 32px, 1240px); margin: 0 auto; padding: 28px 0 64px; display: grid; gap: 16px; }
+
+  /* Header + filters */
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
+  h1 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
+  .sub { color: var(--fg-3); font-size: 13px; }
+  .sub a { color: var(--fg-2); }
+  .controls { display: flex; align-items: center; gap: 10px; }
+  .range { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); }
+  .range button {
+    border: 0; background: none; color: var(--fg-2); font: inherit; font-size: 13px;
+    padding: 7px 14px; border-radius: 999px; cursor: pointer;
+  }
+  .range button[aria-pressed='true'] { background: var(--fg); color: var(--bg); font-weight: 600; }
+  .ghost { color: var(--fg-3); font-size: 13px; text-decoration: none; padding: 7px 4px; }
+  .ghost:hover { color: var(--fg); }
+
+  .demo {
+    display: none; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 14px;
+    border: 1px solid rgba(224, 163, 58, 0.4); background: rgba(224, 163, 58, 0.08); color: #f4cf8e; font-size: 13px;
+  }
+  .demo.on { display: flex; }
+  .demo b { font-weight: 600; }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; min-width: 0; }
+  .card h2 { margin: 0 0 4px; font-size: 15px; font-weight: 500; }
+  .card .hint { margin: 0 0 14px; color: var(--fg-3); font-size: 12.5px; }
+  .grid { display: grid; gap: 16px; }
+  .is-loading .grid, .is-loading .tiles { opacity: 0.55; transition: opacity 0.2s; }
+
+  /* Excluding my own visits */
+  .me { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 10px 16px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); font-size: 13px; color: var(--fg-2); }
+  .me.ok { color: var(--fg-3); }
+  .me b { font-weight: 500; color: var(--fg); }
+  .btn { border: 1px solid var(--line-2); background: none; color: var(--fg); font: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+  .btn:hover { border-color: rgba(241, 241, 241, 0.32); background: rgba(241, 241, 241, 0.05); }
+  .btn.primary { border: 0; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; }
+  .btn.primary:hover { background: linear-gradient(135deg, #8a78f5, #5a45f0); }
+  .ignored li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .ignored ul { list-style: none; margin: 0; padding: 0; }
+  .ignored .tag { margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: rgba(74, 222, 128, 0.14); color: var(--up); font-size: 11.5px; }
+  .ignored .when { color: var(--fg-3); font-size: 12px; margin-left: 8px; }
+
+  /* Right now */
+  .now { display: grid; gap: 4px; }
+  .now-head { display: flex; align-items: center; gap: 12px; }
+  .now-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--fg-3); }
+  .now.on .now-dot { background: var(--up); animation: pulse 2s ease-out infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55); } 70%, 100% { box-shadow: 0 0 0 9px rgba(74, 222, 128, 0); } }
+  .now-head h2 { margin: 0; font-size: 18px; font-weight: 500; letter-spacing: -0.01em; }
+  .now-time { margin-left: auto; color: var(--fg-3); font-size: 12px; white-space: nowrap; }
+  .now-hint { margin: 0 0 0 22px; color: var(--fg-3); font-size: 12.5px; }
+  .now.on .now-hint { display: none; }
+  .now-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; }
+  .now-list li { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; padding: 10px 0 10px 22px; border-top: 1px solid var(--line); }
+  .now-list li.new { animation: flash 1.6s ease-out; }
+  @keyframes flash { from { background: rgba(155, 140, 255, 0.14); } }
+  .now-list .page { font-size: 15px; }
+  .now-list .meta { color: var(--fg-3); font-size: 12.5px; }
+
+  /* Stat tiles */
+  .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .tile { display: grid; gap: 6px; }
+  .tile .label { color: var(--fg-2); font-size: 13px; }
+  .tile .value { font-size: clamp(26px, 3.2vw, 36px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+  .tile .delta { font-size: 12.5px; color: var(--fg-3); }
+  .delta .up { color: var(--up); }
+  .delta .down { color: var(--down); }
+  @media (min-width: 860px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+  /* Chart */
+  .chart-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 16px; }
+  .legend { display: flex; gap: 16px; color: var(--fg-2); font-size: 12.5px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 14px; height: 2px; border-radius: 2px; display: inline-block; }
+  .chart { position: relative; margin-top: 10px; }
+  .chart svg { display: block; width: 100%; height: 260px; overflow: visible; }
+  .chart .grid-line { stroke: var(--line); stroke-width: 1; }
+  .chart .axis { fill: var(--fg-3); font-size: 11px; }
+  .chart .end { fill: var(--fg-2); font-size: 11.5px; }
+  .chart .hit { fill: transparent; cursor: crosshair; outline: none; }
+  .chart .hit:focus-visible { stroke: var(--accent); stroke-width: 1; }
+  .tip {
+    position: absolute; top: 0; pointer-events: none; min-width: 150px; padding: 10px 12px; border-radius: 12px;
+    background: #0d0b14; border: 1px solid var(--line-2); box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    font-size: 12.5px; opacity: 0; transition: opacity 0.12s;
+  }
+  .tip.on { opacity: 1; }
+  .tip .d { color: var(--fg-3); margin-bottom: 6px; }
+  .tip .row { display: flex; align-items: center; gap: 8px; }
+  .tip .row i { width: 12px; height: 2px; border-radius: 2px; }
+  .tip .row b { font-weight: 600; font-size: 14px; min-width: 28px; }
+  .tip .row span { color: var(--fg-2); }
+  details.data { margin-top: 12px; }
+  details.data summary { cursor: pointer; color: var(--fg-3); font-size: 12.5px; }
+  details.data summary:hover { color: var(--fg); }
+
+  /* Ranked lists */
+  @media (min-width: 960px) {
+    .grid-2 { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+    .grid-2b { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; font-weight: 500; color: var(--fg-3); font-size: 12px; padding: 0 0 8px; }
+  th.num, td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td { padding: 9px 0; border-top: 1px solid var(--line); vertical-align: middle; }
+  td + td, th + th { padding-left: 14px; }
+  .name { display: grid; gap: 5px; min-width: 0; }
+  .name .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .name .p { color: var(--fg-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar { height: 6px; border-radius: 0 4px 4px 0; background: var(--s-views); opacity: 0.85; min-width: 2px; }
+  .bar.alt { background: var(--s-visitors); }
+  .empty { color: var(--fg-3); padding: 18px 0; text-align: center; }
+  .error { color: var(--down); }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <header>
+    <div>
+      <h1>作品集流量</h1>
+      <div class="sub"><a href="https://terry-product-design.github.io/" target="_blank" rel="noopener">terry-product-design.github.io</a> · <span id="period">—</span></div>
+    </div>
+    <div class="controls">
+      <div class="range" role="group" aria-label="期間">
+        <button type="button" data-days="7" aria-pressed="false">7 天</button>
+        <button type="button" data-days="30" aria-pressed="true">30 天</button>
+        <button type="button" data-days="90" aria-pressed="false">90 天</button>
+      </div>
+      <a class="ghost" href="/logout">登出</a>
+    </div>
+  </header>
+
+  <div class="me" id="me" hidden></div>
+
+  <div class="demo" id="demo"><b>示範資料</b>目前顯示的是假資料，用來確認畫面。部署到 Cloudflare 並接上網站後，會換成線上網站的真實流量。</div>
+
+  <section class="card now" id="now" aria-label="現在">
+    <div class="now-head">
+      <span class="now-dot" aria-hidden="true"></span>
+      <h2 id="now-title" aria-live="polite">目前沒有人在看</h2>
+      <span class="now-time" id="now-time"></span>
+    </div>
+    <p class="now-hint">有人打開網站時，這裡會在 15 秒內出現，並顯示他正在看的頁面。</p>
+    <ul class="now-list" id="now-list"></ul>
+  </section>
+
+  <section class="tiles" aria-label="總覽">
+    <div class="card tile"><div class="label">訪客</div><div class="value" id="t-visitors">—</div><div class="delta" id="d-visitors"></div></div>
+    <div class="card tile"><div class="label">瀏覽次數</div><div class="value" id="t-views">—</div><div class="delta" id="d-views"></div></div>
+    <div class="card tile"><div class="label">平均停留時間</div><div class="value" id="t-duration">—</div><div class="delta" id="d-duration"></div></div>
+    <div class="card tile"><div class="label">每位訪客瀏覽頁數</div><div class="value" id="t-depth">—</div><div class="delta" id="d-depth"></div></div>
+  </section>
+
+  <section class="card">
+    <div class="chart-head">
+      <h2>每日流量</h2>
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--s-views)"></i>瀏覽次數</span>
+        <span><i style="background:var(--s-visitors)"></i>訪客</span>
+      </div>
+    </div>
+    <div class="chart" id="chart"></div>
+    <details class="data">
+      <summary>查看數據表</summary>
+      <table id="daily-table"><thead><tr><th>日期</th><th class="num">瀏覽次數</th><th class="num">訪客</th></tr></thead><tbody></tbody></table>
+    </details>
+  </section>
+
+  <div class="grid grid-2">
+    <section class="card">
+      <h2>各頁面</h2>
+      <p class="hint">平均停留時間 = 頁面在畫面上可見的時間，超過 30 分鐘以 30 分鐘計。</p>
+      <table id="pages"><thead><tr><th>頁面</th><th class="num">瀏覽</th><th class="num">訪客</th><th class="num">平均停留</th></tr></thead><tbody></tbody></table>
+    </section>
+    <section class="card">
+      <h2>流量來源</h2>
+      <p class="hint">訪客從哪裡點進網站。Direct = 直接輸入網址或書籤。</p>
+      <table id="sources"><thead><tr><th>來源</th><th class="num">進站次數</th></tr></thead><tbody></tbody></table>
+    </section>
+  </div>
+
+  <div class="grid grid-2b">
+    <section class="card">
+      <h2>國家／地區</h2>
+      <table id="countries"><thead><tr><th>國家／地區</th><th class="num">訪客</th></tr></thead><tbody></tbody></table>
+    </section>
+    <section class="card">
+      <h2>裝置</h2>
+      <table id="devices"><thead><tr><th>裝置</th><th class="num">訪客</th></tr></thead><tbody></tbody></table>
+    </section>
+  </div>
+
+  <section class="card ignored" id="ignored-card">
+    <h2>排除的網路</h2>
+    <p class="hint">從這些網路來的瀏覽不會被記錄。家裡、公司各按一次；IP 換了再按一次。手機行動網路的 IP 常和別人共用，請改用在手機瀏覽器打開 <code>?notrack</code> 網址。</p>
+    <ul id="ignored-list"></ul>
+  </section>
+</div>
+
+<script>
+  const DEMO = "__DEMO__";
+  const PAGE_NAMES = {
+    '/': '首頁',
+    '/work/ideku-sidebar/': 'IDEKU Sidebar Revamp',
+    '/work/imslp-app/': 'IMSLP App',
+    '/work/cathay-life/': 'Cathay Life',
+    '/work/imslp-web/': 'IMSLP Search',
+    '/work/myreward/': 'MyReward',
+  };
+  const DEVICE_NAMES = { Desktop: '電腦', Mobile: '手機', Tablet: '平板' };
+  const nf = new Intl.NumberFormat('zh-TW');
+  let regionNames = null;
+  try { regionNames = new Intl.DisplayNames(['zh-Hant'], { type: 'region' }); } catch {}
+
+  const $ = (s) => document.querySelector(s);
+  const app = $('#app');
+  let days = 30;
+  let data = null;
+
+  /* ---------- formatting ---------- */
+  const fmtDuration = (ms) => {
+    if (!ms) return '—';
+    const s = Math.round(ms / 1000);
+    if (s < 60) return `${s} 秒`;
+    const m = Math.floor(s / 60);
+    return `${m} 分 ${String(s % 60).padStart(2, '0')} 秒`;
+  };
+  const fmtDay = (d) => `${Number(d.slice(5, 7))}/${Number(d.slice(8, 10))}`;
+  const flag = (cc) => (/^[A-Z]{2}$/.test(cc) && cc !== 'XX' ? String.fromCodePoint(...[...cc].map((c) => 127397 + c.charCodeAt(0))) : '🌐');
+  const country = (cc) => (cc === 'XX' || !cc ? '未知' : (regionNames && regionNames.of(cc)) || cc);
+
+  function el(tag, props = {}, ...kids) {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'class') n.className = v;
+      else if (k === 'style') n.style.cssText = v;
+      else n.setAttribute(k, v);
+    }
+    for (const kid of kids) n.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+    return n;
+  }
+
+  /** Signed change vs the previous period of the same length. */
+  function delta(target, now, before, fmt = (v) => `${Math.round(v)}%`) {
+    target.replaceChildren();
+    if (!before) { target.textContent = `前 ${days} 天無資料`; return; }
+    const pct = ((now - before) / before) * 100;
+    const cls = Math.abs(pct) < 0.5 ? '' : pct > 0 ? 'up' : 'down';
+    const arrow = cls === 'up' ? '↑' : cls === 'down' ? '↓' : '';
+    target.append(el('span', { class: cls }, `${arrow} ${fmt(Math.abs(pct))}`), ` 與前 ${days} 天相比`);
+  }
+
+  /* ---------- tiles ---------- */
+  function renderTiles() {
+    const t = data.totals, p = data.previous;
+    $('#t-visitors').textContent = nf.format(t.visitors || 0);
+    $('#t-views').textContent = nf.format(t.views || 0);
+    $('#t-duration').textContent = fmtDuration(t.avgDuration);
+    const depth = t.visitors ? t.views / t.visitors : 0;
+    const pDepth = p.visitors ? p.views / p.visitors : 0;
+    $('#t-depth').textContent = depth ? depth.toFixed(1) : '—';
+    delta($('#d-visitors'), t.visitors, p.visitors);
+    delta($('#d-views'), t.views, p.views);
+    delta($('#d-duration'), t.avgDuration || 0, p.avgDuration || 0);
+    delta($('#d-depth'), depth, pDepth);
+    $('#period').textContent = `${data.from.replaceAll('-', '/')} – ${data.to.replaceAll('-', '/')}`;
+  }
+
+  /* ---------- daily chart (SVG, 2 series, crosshair tooltip) ---------- */
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  function svg(tag, attrs = {}) {
+    const n = document.createElementNS(SVGNS, tag);
+    for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+    return n;
+  }
+  const niceMax = (v) => {
+    if (v <= 4) return 4;
+    const p = Math.pow(10, Math.floor(Math.log10(v)));
+    const n = v / p;
+    return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * p;
+  };
+
+  function renderChart() {
+    const box = $('#chart');
+    box.replaceChildren();
+    const rows = data.daily;
+    const W = Math.max(box.clientWidth, 320), H = 260;
+    const pad = { l: 36, r: 56, t: 12, b: 26 };
+    const iw = W - pad.l - pad.r, ih = H - pad.t - pad.b;
+    const max = niceMax(Math.max(1, ...rows.map((r) => r.views)));
+    const x = (i) => pad.l + (rows.length === 1 ? iw / 2 : (i / (rows.length - 1)) * iw);
+    const y = (v) => pad.t + ih - (v / max) * ih;
+
+    const root = svg('svg', { viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': `每日瀏覽次數與訪客，最近 ${days} 天` });
+    // grid + y ticks
+    for (let k = 0; k <= 4; k++) {
+      const v = (max / 4) * k, yy = y(v);
+      root.append(svg('line', { x1: pad.l, x2: W - pad.r, y1: yy, y2: yy, class: 'grid-line' }));
+      const t = svg('text', { x: pad.l - 8, y: yy + 4, 'text-anchor': 'end', class: 'axis' });
+      t.textContent = nf.format(v);
+      root.append(t);
+    }
+    // x labels: about 6
+    const step = Math.max(1, Math.ceil(rows.length / 6));
+    rows.forEach((r, i) => {
+      if (i % step !== 0 && i !== rows.length - 1) return;
+      if (i !== rows.length - 1 && rows.length - 1 - i < step * 0.6) return;
+      const t = svg('text', { x: x(i), y: H - 6, 'text-anchor': 'middle', class: 'axis' });
+      t.textContent = fmtDay(r.day);
+      root.append(t);
+    });
+
+    const line = (key) => rows.map((r, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(r[key]).toFixed(1)}`).join(' ');
+    const area = `${line('views')} L${x(rows.length - 1).toFixed(1)} ${y(0)} L${x(0).toFixed(1)} ${y(0)} Z`;
+    root.append(svg('path', { d: area, fill: 'var(--s-views)', 'fill-opacity': 0.1 }));
+    const series = [
+      { key: 'views', name: '瀏覽次數', color: 'var(--s-views)' },
+      { key: 'visitors', name: '訪客', color: 'var(--s-visitors)' },
+    ];
+    for (const s of series) {
+      root.append(svg('path', { d: line(s.key), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    }
+    // end dots + end labels (skipped when they would collide; the legend and tooltip cover it)
+    const last = rows.length - 1;
+    const ends = series.map((s) => ({ ...s, y: y(rows[last][s.key]), v: rows[last][s.key] }));
+    for (const e of ends) root.append(svg('circle', { cx: x(last), cy: e.y, r: 4, fill: e.color, stroke: 'var(--card)', 'stroke-width': 2 }));
+    if (Math.abs(ends[0].y - ends[1].y) >= 14) {
+      for (const e of ends) {
+        const t = svg('text', { x: x(last) + 10, y: e.y + 4, class: 'end' });
+        t.textContent = `${nf.format(e.v)} ${e.name}`;
+        root.append(t);
+      }
+    }
+
+    // hover layer
+    const cross = svg('line', { y1: pad.t, y2: pad.t + ih, stroke: 'var(--line-2)', 'stroke-width': 1, visibility: 'hidden' });
+    const dots = series.map((s) => svg('circle', { r: 4, fill: s.color, stroke: 'var(--card)', 'stroke-width': 2, visibility: 'hidden' }));
+    root.append(cross, ...dots);
+    const hit = svg('rect', { x: pad.l - 8, y: pad.t, width: iw + 16, height: ih, class: 'hit', tabindex: 0, 'aria-label': '用左右鍵查看每日數字' });
+    root.append(hit);
+    box.append(root);
+
+    const tip = el('div', { class: 'tip', role: 'status' });
+    box.append(tip);
+    let idx = -1;
+    const show = (i) => {
+      idx = Math.max(0, Math.min(last, i));
+      const r = rows[idx], xx = x(idx);
+      cross.setAttribute('x1', xx); cross.setAttribute('x2', xx); cross.setAttribute('visibility', 'visible');
+      series.forEach((s, k) => { dots[k].setAttribute('cx', xx); dots[k].setAttribute('cy', y(r[s.key])); dots[k].setAttribute('visibility', 'visible'); });
+      tip.replaceChildren(
+        el('div', { class: 'd' }, r.day.replaceAll('-', '/')),
+        ...series.map((s) => el('div', { class: 'row' }, el('i', { style: `background:${s.color}` }), el('b', {}, nf.format(r[s.key])), el('span', {}, s.name))),
+      );
+      const scale = box.clientWidth / W;
+      const left = xx * scale;
+      tip.style.left = `${left + 14 + 160 > box.clientWidth ? left - 14 - tip.offsetWidth : left + 14}px`;
+      tip.classList.add('on');
+    };
+    const hide = () => { cross.setAttribute('visibility', 'hidden'); dots.forEach((d) => d.setAttribute('visibility', 'hidden')); tip.classList.remove('on'); };
+    hit.addEventListener('pointermove', (ev) => {
+      const rect = root.getBoundingClientRect();
+      const px = ((ev.clientX - rect.left) / rect.width) * W;
+      show(Math.round(((px - pad.l) / iw) * last));
+    });
+    hit.addEventListener('pointerleave', hide);
+    hit.addEventListener('focus', () => show(idx < 0 ? last : idx));
+    hit.addEventListener('blur', hide);
+    hit.addEventListener('keydown', (ev) => {
+      if (ev.key === 'ArrowLeft') { ev.preventDefault(); show(idx - 1); }
+      if (ev.key === 'ArrowRight') { ev.preventDefault(); show(idx + 1); }
+    });
+
+    // table view of the same numbers
+    const body = $('#daily-table tbody');
+    body.replaceChildren(...[...rows].reverse().map((r) => el('tr', {}, el('td', {}, r.day.replaceAll('-', '/')), el('td', { class: 'num' }, nf.format(r.views)), el('td', { class: 'num' }, nf.format(r.visitors)))));
+  }
+
+  /* ---------- ranked tables ---------- */
+  function ranked(tableSel, rows, cols, barKey, alt = false) {
+    const body = $(`${tableSel} tbody`);
+    if (!rows.length) {
+      body.replaceChildren(el('tr', {}, el('td', { class: 'empty', colspan: cols.values.length + 1 }, '這段期間還沒有資料')));
+      return;
+    }
+    const max = Math.max(...rows.map((r) => r[barKey]));
+    body.replaceChildren(
+      ...rows.map((r) => {
+        const name = el('div', { class: 'name' });
+        const [title, sub] = cols.label(r);
+        name.append(el('span', { class: 't', title }, title));
+        if (sub) name.append(el('span', { class: 'p' }, sub));
+        name.append(el('span', { class: `bar${alt ? ' alt' : ''}`, style: `width:${((r[barKey] / max) * 100).toFixed(1)}%` }));
+        return el('tr', {}, el('td', {}, name), ...cols.values.map((f) => el('td', { class: 'num' }, f(r))));
+      }),
+    );
+  }
+
+  function renderTables() {
+    ranked('#pages', data.pages, {
+      label: (r) => [PAGE_NAMES[r.path] || r.path, PAGE_NAMES[r.path] ? r.path : ''],
+      values: [(r) => nf.format(r.views), (r) => nf.format(r.visitors), (r) => fmtDuration(r.avgDuration)],
+    }, 'views');
+    ranked('#sources', data.sources, {
+      label: (r) => [r.source],
+      values: [(r) => nf.format(r.visits)],
+    }, 'visits', true);
+    ranked('#countries', data.countries, {
+      label: (r) => [`${flag(r.country)}  ${country(r.country)}`],
+      values: [(r) => nf.format(r.visitors)],
+    }, 'visitors', true);
+    ranked('#devices', data.devices, {
+      label: (r) => [DEVICE_NAMES[r.device] || r.device],
+      values: [(r) => nf.format(r.visitors)],
+    }, 'visitors', true);
+  }
+
+  /* ---------- right now (polled every 15 s while this tab is visible) ---------- */
+  const LIVE_MS = 15000;
+  let liveTimer = null;
+  let shownKeys = null;
+  const since = (ms) => {
+    const m = Math.floor(Math.max(0, ms) / 60000);
+    return m < 1 ? '剛打開' : `已看 ${m} 分鐘`;
+  };
+  async function loadLive() {
+    try {
+      const res = await fetch('/api/live', { credentials: 'same-origin' });
+      if (res.status === 401) { location.reload(); return; }
+      if (!res.ok) throw new Error(res.status);
+      const live = await res.json();
+      const on = live.viewers.length > 0;
+      $('#now').classList.toggle('on', on);
+      $('#now-title').textContent = on ? `${live.people} 位訪客正在看` : '目前沒有人在看';
+      const keys = new Set();
+      $('#now-list').replaceChildren(
+        ...live.viewers.map((r) => {
+          const key = `${r.ts}|${r.path}`;
+          keys.add(key);
+          const meta = [`${flag(r.country)} ${country(r.country)}`, DEVICE_NAMES[r.device] || r.device, since(live.now - r.ts)];
+          if (r.source) meta.splice(2, 0, `從 ${r.source}`);
+          return el('li', { class: shownKeys && !shownKeys.has(key) ? 'new' : '' },
+            el('span', { class: 'page' }, PAGE_NAMES[r.path] || r.path),
+            el('span', { class: 'meta' }, meta.join(' · ')));
+        }),
+      );
+      shownKeys = keys;
+      $('#now-time').textContent = `更新於 ${new Date(live.now).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    } catch {
+      $('#now-time').textContent = '暫時無法更新';
+    }
+  }
+  function startLive() {
+    clearInterval(liveTimer);
+    loadLive();
+    liveTimer = setInterval(loadLive, LIVE_MS);
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(liveTimer);
+      $('#now-time').textContent = '已暫停（分頁不在前景）';
+    } else {
+      startLive();
+      load(); // catch the summary up too
+    }
+  });
+
+  /* ---------- excluding my own visits ---------- */
+  async function ignoreApi(body) {
+    const res = await fetch('/api/ignore', body
+      ? { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+      : { credentials: 'same-origin' });
+    if (res.status === 401) { location.reload(); return null; }
+    return res.ok ? res.json() : null;
+  }
+  function renderIgnore(r) {
+    if (!r) return;
+    const me = $('#me');
+    me.hidden = false;
+    me.classList.toggle('ok', r.current.ignored);
+    if (r.current.ignored) {
+      me.replaceChildren(el('span', {}, `✓ 已排除你目前的網路（${r.current.label}），你自己的瀏覽不會被記錄`));
+    } else {
+      const add = el('button', { type: 'button', class: 'btn primary' }, '排除這個網路');
+      add.addEventListener('click', async () => { add.disabled = true; renderIgnore(await ignoreApi({ action: 'add' })); });
+      me.replaceChildren(el('span', {}, '你目前的網路（', el('b', {}, r.current.label), '）的瀏覽會被計入'), add);
+    }
+    const list = $('#ignored-list');
+    if (!r.list.length) {
+      list.replaceChildren(el('li', {}, el('span', { class: 'empty' }, '還沒有排除任何網路')));
+      return;
+    }
+    list.replaceChildren(
+      ...r.list.map((n) => {
+        const name = el('span', {}, n.label);
+        if (n.current) name.append(el('span', { class: 'tag' }, '目前網路'));
+        name.append(el('span', { class: 'when' }, `${new Date(n.added).toLocaleDateString('zh-TW')} 加入`));
+        const rm = el('button', { type: 'button', class: 'btn' }, '移除');
+        rm.addEventListener('click', async () => { rm.disabled = true; renderIgnore(await ignoreApi({ action: 'remove', id: n.id })); });
+        return el('li', {}, name, rm);
+      }),
+    );
+  }
+
+  /* ---------- load ---------- */
+  async function load() {
+    app.classList.add('is-loading');
+    try {
+      const res = await fetch(`/api/stats?days=${days}`, { credentials: 'same-origin' });
+      if (res.status === 401) { location.reload(); return; }
+      if (!res.ok) throw new Error(res.status);
+      data = await res.json();
+      $('#demo').classList.toggle('on', DEMO === true || data.demo);
+      renderTiles();
+      renderChart();
+      renderTables();
+    } catch (err) {
+      $('#chart').replaceChildren(el('p', { class: 'error' }, '讀取資料失敗，請稍後重新整理。'));
+    } finally {
+      app.classList.remove('is-loading');
+    }
+  }
+
+  document.querySelectorAll('.range button').forEach((b) =>
+    b.addEventListener('click', () => {
+      days = Number(b.dataset.days);
+      document.querySelectorAll('.range button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      load();
+    }),
+  );
+  let resizeTimer;
+  addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => data && renderChart(), 150); });
+  load();
+  startLive();
+  ignoreApi().then(renderIgnore);
+</script>
+</body>
+</html>

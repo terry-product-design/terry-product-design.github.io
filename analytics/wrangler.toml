@@ -1,0 +1,21 @@
+# Cloudflare Worker: collects page views from the portfolio and serves the analytics dashboard.
+name = "terry-portfolio-analytics"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+# Only page views sent from this origin are stored.
+ALLOWED_ORIGIN = "https://terry-product-design.github.io"
+# Days are counted in Taipei time (UTC+8).
+TZ_OFFSET_MIN = "480"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "portfolio-analytics"
+# Created with `wrangler d1 create portfolio-analytics`.
+database_id = "7c36f6c4-ef2b-41d6-8b86-93855617116e"
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true

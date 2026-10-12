@@ -10,3 +10,7 @@ dist/
 
 # Working files not used by the site
 ideku-dashboard-mockup.png
+
+# Analytics worker: local secrets and state
+analytics/.dev.vars
+analytics/.wrangler/

@@ -30,6 +30,8 @@ export const site = {
   linkedin: 'https://www.linkedin.com/in/terry-productdesigner',
   resume:
     'https://drive.google.com/file/d/1UrohJ3UI66BXtxobAFBNBddHAKHxeJWz/view?usp=sharing',
+  // Analytics worker URL (see analytics/README.md). Empty = tracking off.
+  analytics: 'https://terry-portfolio-analytics.terry-product-design.workers.dev',
 };
 
 export const hero = {

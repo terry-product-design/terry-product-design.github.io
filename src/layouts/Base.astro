@@ -35,6 +35,48 @@ const ogImage = new URL(image ?? `${base}/og.jpg`, Astro.site);
     <meta property="og:image" content={ogImage} />
     <meta name="twitter:card" content="summary_large_image" />
 
+    {
+      site.analytics && (
+        <script is:inline define:vars={{ endpoint: `${site.analytics.replace(/\/$/, '')}/e` }}>
+          // Page-view beacon for the private analytics dashboard (analytics/). No cookies.
+          // Live site only; visit with ?notrack once to exclude this browser, ?track to undo.
+          (function () {
+            if (location.hostname !== 'terry-product-design.github.io') return;
+            try {
+              if (/[?&]notrack\b/.test(location.search)) localStorage.setItem('notrack', '1');
+              if (/[?&]track\b/.test(location.search)) localStorage.removeItem('notrack');
+              if (localStorage.getItem('notrack')) return;
+            } catch (e) {}
+            var id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+            var send = function (o) {
+              var b = JSON.stringify(o);
+              if (!(navigator.sendBeacon && navigator.sendBeacon(endpoint, b))) fetch(endpoint, { method: 'POST', body: b, keepalive: true });
+            };
+            send({ t: 'v', id: id, p: location.pathname, r: document.referrer, u: new URLSearchParams(location.search).get('utm_source') || '' });
+            // Time the page is actually visible, plus a "still here" ping every 30 s while it is,
+            // so the dashboard can show who is viewing right now.
+            var shown = 0, since = 0, beat = 0;
+            var elapsed = function () { return shown + (since ? Date.now() - since : 0); };
+            var resume = function () {
+              since = Date.now();
+              clearInterval(beat);
+              beat = setInterval(function () { send({ t: 'h', id: id, d: elapsed() }); }, 30000);
+            };
+            var pause = function () {
+              clearInterval(beat);
+              if (since) { shown += Date.now() - since; since = 0; }
+              send({ t: 'l', id: id, d: shown });
+            };
+            if (document.visibilityState === 'visible') resume();
+            document.addEventListener('visibilitychange', function () {
+              if (document.visibilityState === 'hidden') pause();
+              else { resume(); send({ t: 'h', id: id, d: elapsed() }); }
+            });
+            addEventListener('pagehide', function () { if (since) pause(); });
+          })();
+        </script>
+      )
+    }
     <script is:inline>
       document.documentElement.classList.replace('no-js', 'js');
       setTimeout(function () {
