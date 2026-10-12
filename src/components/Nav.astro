@@ -50,11 +50,14 @@ const links = [
 
     <div class="nav__meta">
       <a class="btn btn--solid nav__resume" href={site.resume} target="_blank" rel="noopener">
-        <span class="roll"><span class="roll__inner" data-text="Résumé ↗">Résumé ↗</span></span>
+        Résumé<span class="nav__arrow" aria-hidden="true">↗</span>
       </a>
-      <a class="btn nav__cta" href={site.linkedin} target="_blank" rel="noopener" data-magnetic="0.3">
-        <span class="nav__dot" aria-hidden="true"></span>
-        <span class="roll"><span class="roll__inner" data-text="Get in touch">Get in touch</span></span>
+      <a class="btn nav__cta" href={site.linkedin} target="_blank" rel="noopener">
+        Get in touch
+        <svg class="nav__plane" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M14.25 1.75 7 9" />
+          <path d="M14.25 1.75 9.75 14.25 7 9 1.75 6.25z" />
+        </svg>
       </a>
       <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="menu" data-menu-toggle>
         <span class="sr-only">Menu</span>
@@ -199,14 +202,65 @@ const links = [
     align-items: center;
     gap: 10px;
   }
-  /* Résumé: white pill (hover fills with the accent) */
+  /* Hover: each button fades to a deeper shade of its own colour and lifts slightly —
+     no sliding fill or rolling text, and primary / secondary never swap roles. */
+  .nav__resume,
+  .nav__cta {
+    transition: transform 0.35s var(--ease-out), box-shadow 0.35s ease;
+  }
+  .nav__resume::before,
+  .nav__cta::before {
+    transform: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .nav__resume:hover,
+  .nav__resume:focus-visible,
+  .nav__cta:hover,
+  .nav__cta:focus-visible {
+    transform: translateY(-1px);
+  }
+  .nav__resume:hover::before,
+  .nav__resume:focus-visible::before,
+  .nav__cta:hover::before,
+  .nav__cta:focus-visible::before {
+    opacity: 1;
+  }
+  .nav__plane {
+    width: 16px;
+    height: 16px;
+    margin-left: -2px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.35s var(--ease-out);
+  }
+  .nav__cta:hover .nav__plane,
+  .nav__cta:focus-visible .nav__plane {
+    transform: translate(2px, -2px);
+  }
+  .nav__arrow {
+    display: inline-block;
+    margin-left: -4px; /* .btn gap is 10px; the arrow sits closer to the word */
+    transition: transform 0.35s var(--ease-out);
+  }
+  .nav__resume:hover .nav__arrow,
+  .nav__resume:focus-visible .nav__arrow {
+    transform: translate(2px, -2px);
+  }
+  /* Résumé: secondary, white pill */
   .nav__resume {
     display: none;
     height: 40px;
     padding: 0 18px;
     font-size: 14px;
   }
-  /* Get in touch: the site's violet, a slight gradient (hover fills white) */
+  .nav__resume::before {
+    background: #d6d2e2;
+  }
+  /* Get in touch: primary, the site's violet with a slight gradient */
   .nav__cta {
     height: 40px;
     padding: 0 18px;
@@ -216,28 +270,13 @@ const links = [
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 24px -10px rgba(111, 91, 255, 0.7);
   }
+  .nav__cta::before {
+    background: linear-gradient(135deg, #7d6af5 0%, #4f38e0 100%);
+  }
   .nav__cta:hover,
   .nav__cta:focus-visible {
-    color: var(--bg);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 10px 28px -10px rgba(111, 91, 255, 0.9);
   }
-  .nav__dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #4ade80;
-    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.6);
-    animation: pulse 2.4s ease-out infinite;
-  }
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
-    }
-    70%,
-    100% {
-      box-shadow: 0 0 0 8px rgba(74, 222, 128, 0);
-    }
-  }
-
   .nav__toggle {
     display: grid;
     place-items: center;
