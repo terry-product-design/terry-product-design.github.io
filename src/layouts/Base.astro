@@ -47,32 +47,43 @@ const ogImage = new URL(image ?? `${base}/og.jpg`, Astro.site);
               if (/[?&]track\b/.test(location.search)) localStorage.removeItem('notrack');
               if (localStorage.getItem('notrack')) return;
             } catch (e) {}
-            var id = Math.random().toString(36).slice(2) + Date.now().toString(36);
             var send = function (o) {
               var b = JSON.stringify(o);
               if (!(navigator.sendBeacon && navigator.sendBeacon(endpoint, b))) fetch(endpoint, { method: 'POST', body: b, keepalive: true });
             };
-            send({ t: 'v', id: id, p: location.pathname, r: document.referrer, u: new URLSearchParams(location.search).get('utm_source') || '' });
-            // Time the page is actually visible, plus a "still here" ping every 30 s while it is,
-            // so the dashboard can show who is viewing right now.
-            var shown = 0, since = 0, beat = 0;
+            var utm = new URLSearchParams(location.search).get('utm_source') || '';
+            // id: this page view. shown: ms visible so far. A "still here" ping every 30 s while visible
+            // lets the dashboard show who is viewing right now.
+            var id = '', shown = 0, since = 0, beat = 0;
             var elapsed = function () { return shown + (since ? Date.now() - since : 0); };
-            var resume = function () {
-              since = Date.now();
-              clearInterval(beat);
-              beat = setInterval(function () { send({ t: 'h', id: id, d: elapsed() }); }, 30000);
-            };
+            var ping = function () { if (id) send({ t: 'h', id: id, d: elapsed() }); };
+            var resume = function () { since = Date.now(); clearInterval(beat); beat = setInterval(ping, 30000); };
             var pause = function () {
               clearInterval(beat);
               if (since) { shown += Date.now() - since; since = 0; }
-              send({ t: 'l', id: id, d: shown });
+              if (id) send({ t: 'l', id: id, d: shown });
             };
-            if (document.visibilityState === 'visible') resume();
+            var start = function (restored) {
+              id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+              shown = 0;
+              // A page restored with Back is a view from within the site, not a new entrance.
+              send({ t: 'v', id: id, p: location.pathname, r: restored ? location.href : document.referrer, u: restored ? '' : utm });
+              resume();
+            };
+            // Count a view once the page is on screen (not while preloaded or opened in a background tab).
+            if (document.visibilityState === 'visible') start(false);
             document.addEventListener('visibilitychange', function () {
-              if (document.visibilityState === 'hidden') pause();
-              else { resume(); send({ t: 'h', id: id, d: elapsed() }); }
+              if (document.visibilityState === 'hidden') { if (since) pause(); }
+              else if (!id) start(false);
+              else { resume(); ping(); }
             });
             addEventListener('pagehide', function () { if (since) pause(); });
+            // Back / forward restores the page from memory without running this script again.
+            addEventListener('pageshow', function (e) {
+              if (!e.persisted) return;
+              if (since) pause();
+              start(true);
+            });
           })();
         </script>
       )

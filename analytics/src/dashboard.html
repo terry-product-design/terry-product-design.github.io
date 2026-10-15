@@ -229,7 +229,8 @@
 
   <section class="card ignored" id="ignored-card">
     <h2>排除的網路</h2>
-    <p class="hint">從這些網路來的瀏覽不會被記錄。家裡、公司各按一次；IP 換了再按一次。手機行動網路的 IP 常和別人共用，請改用在手機瀏覽器打開 <code>?notrack</code> 網址。</p>
+    <p class="hint">最可靠的方式是「排除這台裝置」：在你自己的電腦、手機上各按一次（會開啟作品集並記住這個瀏覽器，換網路也有效）。排除網路則是補充：家裡的網路可能同時有 IPv4 和 IPv6，兩種都出現過時各按一次。手機行動網路的位址常和別人共用，不要用排除網路。</p>
+    <p style="margin:0 0 6px"><a class="btn" href="https://terry-product-design.github.io/?notrack" target="_blank" rel="noopener">排除這台裝置</a></p>
     <ul id="ignored-list"></ul>
   </section>
 </div>
@@ -520,7 +521,8 @@
     } else {
       const add = el('button', { type: 'button', class: 'btn primary' }, '排除這個網路');
       add.addEventListener('click', async () => { add.disabled = true; renderIgnore(await ignoreApi({ action: 'add' })); });
-      me.replaceChildren(el('span', {}, '你目前的網路（', el('b', {}, r.current.label), '）的瀏覽會被計入'), add);
+      const device = el('a', { class: 'btn', href: 'https://terry-product-design.github.io/?notrack', target: '_blank', rel: 'noopener' }, '排除這台裝置');
+      me.replaceChildren(el('span', {}, '你目前的網路（', el('b', {}, r.current.label), '）的瀏覽會被計入'), add, device);
     }
     const list = $('#ignored-list');
     if (!r.list.length) {

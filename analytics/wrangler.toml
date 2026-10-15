@@ -3,6 +3,10 @@ name = "terry-portfolio-analytics"
 main = "src/index.js"
 compatibility_date = "2025-06-01"
 
+# Request logs (why a page view was kept or dropped), viewable with `wrangler tail`.
+[observability]
+enabled = true
+
 [vars]
 # Only page views sent from this origin are stored.
 ALLOWED_ORIGIN = "https://terry-product-design.github.io"

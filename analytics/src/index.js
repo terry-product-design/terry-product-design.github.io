@@ -59,7 +59,9 @@ async function collect(request, env) {
   }
   const done = new Response(null, { status: 204, headers: cors });
   const ua = request.headers.get('User-Agent') || '';
-  if (request.method !== 'POST' || !allowed || BOT_UA.test(ua)) return done;
+  if (request.method !== 'POST') return done;
+  if (!allowed) return log('drop', 'origin', origin), done;
+  if (BOT_UA.test(ua)) return log('drop', 'bot'), done;
 
   const body = await request.text();
   if (body.length > 2048) return done;
@@ -77,7 +79,7 @@ async function collect(request, env) {
     if (!path) return done;
     const ip = request.headers.get('CF-Connecting-IP') || '';
     // Excluded networks are dropped here; their pings then match no row and change nothing.
-    if (await isIgnored(ip, env)) return done;
+    if (await isIgnored(ip, env)) return log('drop', 'excluded network', path), done;
     const now = Date.now();
     const day = localDay(now, env);
     const visitor = (await hmac(env.SECRET, `${day}|${ip}|${ua}`)).slice(0, 16);
@@ -86,6 +88,7 @@ async function collect(request, env) {
     )
       .bind(id, now, day, path, sourceOf(e.r, e.u, env), request.cf?.country || 'XX', deviceOf(ua), visitor, now)
       .run();
+    log('view', path, sourceOf(e.r, e.u, env) ?? 'internal', deviceOf(ua));
   } else if (e.t === 'h' || e.t === 'l') {
     // 'h' = still here (sent every 30 s while visible), 'l' = hidden or closed.
     // Both carry the running visible time; keep the largest.
@@ -179,7 +182,17 @@ async function live(env) {
 /* ------------------------------------------------------------------ */
 /* Excluded networks                                                   */
 /* ------------------------------------------------------------------ */
-const ipHash = (ip, env) => hmac(env.SECRET, `ip|${ip}`);
+/** IPv4 as is; IPv6 by its /64 prefix — every device on a home network shares it, while each
+ *  device's own address differs and rotates. */
+function networkOf(ip) {
+  if (!ip.includes(':')) return ip;
+  const [head, tail = ''] = ip.toLowerCase().split('::');
+  const h = head ? head.split(':') : [];
+  const t = tail ? tail.split(':') : [];
+  const full = ip.includes('::') ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
+  return `${full.slice(0, 4).map((g) => g.replace(/^0+(?=.)/, '')).join(':')}::/64`;
+}
+const ipHash = (ip, env) => hmac(env.SECRET, `ip|${networkOf(ip)}`);
 
 async function isIgnored(ip, env) {
   if (!ip) return false;
@@ -190,7 +203,7 @@ async function isIgnored(ip, env) {
 /** "114.36.207.67" -> "114.36.x.x"; IPv6 keeps the first two groups. */
 function maskIp(ip) {
   if (!ip) return '未知';
-  if (ip.includes(':')) return `${ip.split(':').slice(0, 2).join(':')}:…`;
+  if (ip.includes(':')) return `${networkOf(ip).split(':').slice(0, 2).join(':')}:…（IPv6）`;
   const p = ip.split('.');
   return `${p[0]}.${p[1]}.x.x`;
 }
@@ -256,6 +269,10 @@ async function isAuthed(request, env) {
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
+function log(...parts) {
+  console.log(parts.filter((x) => x !== undefined && x !== '').join(' · '));
+}
+
 async function hmac(secret, message) {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret || 'unset'), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
